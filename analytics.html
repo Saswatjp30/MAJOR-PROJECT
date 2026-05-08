@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threat Analytics — ScamShield AI</title>
+  <meta name="description" content="AI-powered threat analytics dashboard — scam trends, phishing activity, and community threat intelligence." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="analytics.css" />
+</head>
+<body>
+
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-glow bg-glow--left"></div>
+    <div class="bg-glow bg-glow--right"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><i class="ph ph-cell-signal-full"></i></div>
+        <span class="logo-text">ScamShield AI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#live-threats"    class="nav-link">Live Threats</a>
+        <a href="threat-feed.html"           class="nav-link">Threat Feed</a>
+        <a href="community.html"             class="nav-link">Community</a>
+        <a href="analytics.html"             class="nav-link nav-link--active">Analytics</a>
+        <a href="index.html#why"             class="nav-link">Why Us</a>
+      </div>
+      <div class="nav-right">
+        <a href="index.html#cta-panel" class="btn btn--nav">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="an-main">
+
+    <!-- Page Header + Filters -->
+    <div class="an-page-header">
+      <div class="an-header-left">
+        <div class="section-eyebrow"><i class="ph ph-chart-line-up"></i> AI-Powered Insights</div>
+        <h1 class="an-page-title">Threat Analytics</h1>
+      </div>
+      <div class="an-filters">
+        <button class="an-filter an-filter--active" data-range="today">Today</button>
+        <button class="an-filter" data-range="week">This Week</button>
+        <button class="an-filter" data-range="month">This Month</button>
+        <div class="an-filter-sep"></div>
+        <select class="an-select" id="type-select">
+          <option value="all">All Types</option>
+          <option value="call">Scam Calls</option>
+          <option value="url">Phishing URLs</option>
+          <option value="message">Scam Messages</option>
+        </select>
+        <select class="an-select" id="risk-select">
+          <option value="all">All Risk Levels</option>
+          <option value="high">High Risk</option>
+          <option value="medium">Medium Risk</option>
+          <option value="low">Low Risk</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="an-stats-grid">
+      <div class="an-stat-card glass-card an-stat-card--cyan">
+        <div class="an-stat-top">
+          <div class="an-stat-icon an-icon--cyan"><i class="ph ph-warning-octagon"></i></div>
+          <span class="an-stat-trend trend--up"><i class="ph ph-trend-up"></i> +12%</span>
+        </div>
+        <span class="an-stat-val" id="as-detected">0</span>
+        <span class="an-stat-lbl">Threats Detected Today</span>
+        <div class="an-sparkline" id="spark-detected"></div>
+      </div>
+      <div class="an-stat-card glass-card an-stat-card--yellow">
+        <div class="an-stat-top">
+          <div class="an-stat-icon an-icon--yellow"><i class="ph ph-phone-slash"></i></div>
+          <span class="an-stat-trend trend--up"><i class="ph ph-trend-up"></i> +8%</span>
+        </div>
+        <span class="an-stat-val" id="as-calls">0</span>
+        <span class="an-stat-lbl">Scam Calls Identified</span>
+        <div class="an-sparkline" id="spark-calls"></div>
+      </div>
+      <div class="an-stat-card glass-card an-stat-card--red">
+        <div class="an-stat-top">
+          <div class="an-stat-icon an-icon--red"><i class="ph ph-link-break"></i></div>
+          <span class="an-stat-trend trend--up"><i class="ph ph-trend-up"></i> +19%</span>
+        </div>
+        <span class="an-stat-val" id="as-urls">0</span>
+        <span class="an-stat-lbl">Phishing URLs Blocked</span>
+        <div class="an-sparkline" id="spark-urls"></div>
+      </div>
+      <div class="an-stat-card glass-card an-stat-card--green">
+        <div class="an-stat-top">
+          <div class="an-stat-icon an-icon--green"><i class="ph ph-shield-check"></i></div>
+          <span class="an-stat-trend trend--stable"><i class="ph ph-minus"></i> 0.2%</span>
+        </div>
+        <span class="an-stat-val" id="as-accuracy">0%</span>
+        <span class="an-stat-lbl">Detection Accuracy</span>
+        <div class="an-sparkline" id="spark-accuracy"></div>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="an-charts-grid">
+
+      <!-- Chart 1: Trend Line (large) -->
+      <div class="an-chart-card glass-card an-chart-card--wide">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-chart-line"></i> Threat Detection Trends</div>
+          <div class="an-chart-legend">
+            <span class="legend-dot" style="background:var(--accent-cyan)"></span>Calls
+            <span class="legend-dot" style="background:var(--alert-red)"></span>URLs
+            <span class="legend-dot" style="background:var(--accent-purple)"></span>Messages
+          </div>
+        </div>
+        <div class="an-chart-wrap"><canvas id="chart-trend"></canvas></div>
+      </div>
+
+      <!-- Chart 2: Donut -->
+      <div class="an-chart-card glass-card">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-chart-donut"></i> Threat Categories</div>
+        </div>
+        <div class="an-chart-wrap an-chart-wrap--donut"><canvas id="chart-donut"></canvas></div>
+        <div class="an-donut-legend" id="donut-legend"></div>
+      </div>
+
+      <!-- Chart 3: Horizontal bar -->
+      <div class="an-chart-card glass-card">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-buildings"></i> Most Targeted Brands</div>
+        </div>
+        <div class="an-brand-list" id="brand-list"></div>
+      </div>
+
+      <!-- Chart 4: Stacked bar -->
+      <div class="an-chart-card glass-card an-chart-card--wide">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-chart-bar"></i> Threat Severity Distribution</div>
+          <div class="an-chart-legend">
+            <span class="legend-dot" style="background:var(--alert-red)"></span>High
+            <span class="legend-dot" style="background:var(--warn-yellow)"></span>Medium
+            <span class="legend-dot" style="background:var(--safe-green)"></span>Low
+          </div>
+        </div>
+        <div class="an-chart-wrap"><canvas id="chart-stacked"></canvas></div>
+      </div>
+
+    </div>
+
+    <!-- HEATMAP + INSIGHTS -->
+    <div class="an-lower-grid">
+
+      <!-- Heatmap -->
+      <div class="an-heatmap-card glass-card">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-calendar-check"></i> Peak Scam Activity Hours</div>
+          <span class="an-chart-sub">Darker = higher threat density</span>
+        </div>
+        <div class="an-heatmap" id="an-heatmap"></div>
+        <div class="an-heatmap-labels">
+          <div class="an-heatmap-days" id="heatmap-days"></div>
+          <div class="an-heatmap-legend">
+            <span>Low</span>
+            <div class="an-heat-grad"></div>
+            <span>High</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Intelligence -->
+      <div class="an-intel-card glass-card">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-users-three"></i> Community Intelligence</div>
+        </div>
+        <div class="an-intel-list">
+          <div class="an-intel-item">
+            <div class="an-intel-icon an-intel-icon--red"><i class="ph ph-warning-octagon"></i></div>
+            <div class="an-intel-info">
+              <span class="an-intel-label">Top Scam Campaign</span>
+              <span class="an-intel-val">TRAI Impersonation Wave</span>
+              <span class="an-intel-sub">1,200+ reports · Active</span>
+            </div>
+            <span class="an-intel-badge an-badge--red">Live</span>
+          </div>
+          <div class="an-intel-item">
+            <div class="an-intel-icon an-intel-icon--yellow"><i class="ph ph-link-break"></i></div>
+            <div class="an-intel-info">
+              <span class="an-intel-label">Trending Domain</span>
+              <span class="an-intel-val">sbi-kyc-update.xyz</span>
+              <span class="an-intel-sub">47 reports in last 2 hrs</span>
+            </div>
+            <span class="an-intel-badge an-badge--yellow">Hot</span>
+          </div>
+          <div class="an-intel-item">
+            <div class="an-intel-icon an-intel-icon--red"><i class="ph ph-phone-x"></i></div>
+            <div class="an-intel-info">
+              <span class="an-intel-label">Most Reported Number</span>
+              <span class="an-intel-val">+91 98765 43210</span>
+              <span class="an-intel-sub">81 community reports</span>
+            </div>
+            <span class="an-intel-badge an-badge--red">High</span>
+          </div>
+          <div class="an-intel-item">
+            <div class="an-intel-icon an-intel-icon--green"><i class="ph ph-seal-check"></i></div>
+            <div class="an-intel-info">
+              <span class="an-intel-label">Latest Verified Threat</span>
+              <span class="an-intel-val">Fake Job SMS Campaign</span>
+              <span class="an-intel-sub">AI + community verified · 5 min ago</span>
+            </div>
+            <span class="an-intel-badge an-badge--green">Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Performance -->
+      <div class="an-perf-card glass-card">
+        <div class="an-chart-header">
+          <div class="an-chart-title"><i class="ph ph-cpu"></i> AI Detection Performance</div>
+        </div>
+        <div class="an-perf-grid">
+          <div class="an-perf-item">
+            <div class="an-ring-wrap">
+              <svg class="an-ring" viewBox="0 0 56 56">
+                <circle class="an-ring-bg" cx="28" cy="28" r="23" />
+                <circle class="an-ring-fill" cx="28" cy="28" r="23" stroke="var(--accent-cyan)"
+                  stroke-dasharray="144.51" stroke-dashoffset="144.51" data-pct="97" />
+              </svg>
+              <span class="an-ring-val">97%</span>
+            </div>
+            <span class="an-perf-label">Detection Rate</span>
+          </div>
+          <div class="an-perf-item">
+            <div class="an-ring-wrap">
+              <svg class="an-ring" viewBox="0 0 56 56">
+                <circle class="an-ring-bg" cx="28" cy="28" r="23" />
+                <circle class="an-ring-fill" cx="28" cy="28" r="23" stroke="var(--safe-green)"
+                  stroke-dasharray="144.51" stroke-dashoffset="144.51" data-pct="97" data-inverse="true" />
+              </svg>
+              <span class="an-ring-val">2.8%</span>
+            </div>
+            <span class="an-perf-label">False Positive Rate</span>
+          </div>
+          <div class="an-perf-item">
+            <div class="an-ring-wrap">
+              <svg class="an-ring" viewBox="0 0 56 56">
+                <circle class="an-ring-bg" cx="28" cy="28" r="23" />
+                <circle class="an-ring-fill" cx="28" cy="28" r="23" stroke="var(--accent-purple)"
+                  stroke-dasharray="144.51" stroke-dashoffset="144.51" data-pct="92" />
+              </svg>
+              <span class="an-ring-val">120ms</span>
+            </div>
+            <span class="an-perf-label">AI Processing Time</span>
+          </div>
+          <div class="an-perf-item">
+            <div class="an-ring-wrap">
+              <svg class="an-ring" viewBox="0 0 56 56">
+                <circle class="an-ring-bg" cx="28" cy="28" r="23" />
+                <circle class="an-ring-fill" cx="28" cy="28" r="23" stroke="var(--warn-yellow)"
+                  stroke-dasharray="144.51" stroke-dashoffset="144.51" data-pct="88" />
+              </svg>
+              <span class="an-ring-val">88%</span>
+            </div>
+            <span class="an-perf-label">Community Score</span>
+          </div>
+        </div>
+        <div class="an-perf-bars">
+          <div class="an-pbar-row">
+            <span class="an-pbar-label">NLP Accuracy</span>
+            <div class="an-pbar-wrap"><div class="an-pbar-fill" data-w="94" style="background:var(--accent-cyan)"></div></div>
+            <span class="an-pbar-val">94%</span>
+          </div>
+          <div class="an-pbar-row">
+            <span class="an-pbar-label">URL Scanner</span>
+            <div class="an-pbar-wrap"><div class="an-pbar-fill" data-w="98" style="background:var(--alert-red)"></div></div>
+            <span class="an-pbar-val">98%</span>
+          </div>
+          <div class="an-pbar-row">
+            <span class="an-pbar-label">Call Analysis</span>
+            <div class="an-pbar-wrap"><div class="an-pbar-fill" data-w="91" style="background:var(--warn-yellow)"></div></div>
+            <span class="an-pbar-val">91%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="analytics.js"></script>
+</body>
+</html>

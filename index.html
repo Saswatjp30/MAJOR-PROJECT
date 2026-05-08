@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScamShield AI — Real-Time Scam Detection & Threat Intelligence</title>
+  <meta name="description" content="ScamShield AI uses advanced machine learning to detect scam calls, phishing URLs, and fraudulent communications in real time.">
+  <link rel="stylesheet" href="index.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Background Effects -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-glow bg-glow--left"></div>
+    <div class="bg-glow bg-glow--right"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       NAVBAR
+  ════════════════════════════════════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <!-- Logo -->
+      <div class="nav-logo">
+        <div class="logo-icon">
+          <i class="ph ph-cell-signal-full"></i>
+        </div>
+        <span class="logo-text">ScamShield AI</span>
+      </div>
+
+      <!-- Menu -->
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#live-threats"       class="nav-link">Live Threats</a></li>
+        <li><a href="threat-feed.html"    class="nav-link">Threat Feed</a></li>
+        <li><a href="community.html"      class="nav-link">Community</a></li>
+        <li><a href="analytics.html"      class="nav-link">Analytics</a></li>
+        <li><a href="#why"                class="nav-link">Why Us</a></li>
+      </ul>
+
+      <!-- CTA -->
+      <a href="#cta-panel" class="btn btn--nav" id="nav-cta">
+        Get Started
+        <i class="ph ph-arrow-right"></i>
+      </a>
+
+
+      <!-- Mobile Toggle -->
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+        <i class="ph ph-list"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════
+       HERO SECTION
+  ════════════════════════════════════════════════════ -->
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-inner">
+
+        <!-- Eyebrow Badge -->
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          AI-Powered Cybersecurity Platform
+        </div>
+
+        <!-- Main Heading -->
+        <h1 class="hero-heading">
+          Real-Time Scam Detection<br>
+          <span class="heading-accent">&amp; Threat Intelligence</span>
+        </h1>
+
+        <!-- Smart Scan Input -->
+        <div class="scan-wrapper">
+          <div class="scan-input-group">
+            <span class="scan-icon">
+              <i class="ph ph-clipboard-text"></i>
+            </span>
+            <input
+              type="text"
+              id="scan-input"
+              class="scan-input"
+              placeholder="Paste suspicious URL, message, or phone number…"
+              autocomplete="off"
+              spellcheck="false"
+            >
+          </div>
+          <div class="scan-actions">
+            <button class="btn btn--primary" id="analyze-btn">
+              <i class="ph ph-scan"></i>
+              Analyze Threat
+            </button>
+            <button class="btn btn--ghost" id="live-threats-btn">
+              <i class="ph ph-activity"></i>
+              View Live Threats
+            </button>
+          </div>
+        </div>
+
+        <!-- Scan Loading State (hidden by default) -->
+        <div class="scan-loading" id="scan-loading" style="display:none" aria-live="polite">
+          <div class="scan-loader-ring"></div>
+          <div class="scan-loading-text">
+            <span class="scan-loading-title">Analyzing threat…</span>
+            <span class="scan-loading-sub" id="scan-loading-step">Scanning domain structure</span>
+          </div>
+        </div>
+
+        <!-- Scan Validation Error (hidden by default) -->
+        <div class="scan-error" id="scan-error" style="display:none">
+          <i class="ph ph-warning-circle"></i>
+          Please enter a URL, message, or phone number.
+        </div>
+
+        <!-- Result Card (hidden by default) -->
+        <div class="scan-result" id="scan-result" style="display:none" aria-live="polite">
+          <div class="sr-header">
+            <div class="sr-type-row">
+              <span class="sr-threat-icon" id="sr-icon"></span>
+              <div class="sr-labels">
+                <span class="sr-risk-label" id="sr-risk-label"></span>
+                <span class="sr-threat-type" id="sr-threat-type"></span>
+              </div>
+              <button class="sr-close" id="sr-close" aria-label="Close result"><i class="ph ph-x"></i></button>
+            </div>
+
+            <!-- Risk Meter -->
+            <div class="sr-meter">
+              <div class="sr-meter-track">
+                <div class="sr-meter-fill" id="sr-meter-fill"></div>
+                <div class="sr-meter-glow" id="sr-meter-glow"></div>
+              </div>
+              <div class="sr-meter-vals">
+                <span>0</span>
+                <span class="sr-meter-score" id="sr-meter-score"></span>
+                <span>100</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="sr-body">
+            <!-- Reasons -->
+            <div class="sr-section">
+              <div class="sr-section-label"><i class="ph ph-list-checks"></i> Detection Reasons</div>
+              <ul class="sr-reasons" id="sr-reasons"></ul>
+            </div>
+
+            <!-- Community -->
+            <div class="sr-section">
+              <div class="sr-section-label"><i class="ph ph-users-three"></i> Community Intelligence</div>
+              <div class="sr-community" id="sr-community"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="sr-section">
+              <div class="sr-section-label"><i class="ph ph-shield-check"></i> Recommended Actions</div>
+              <div class="sr-actions" id="sr-actions"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Scans History (hidden until first scan) -->
+        <div class="scan-history" id="scan-history" style="display:none">
+          <div class="scan-history-header">
+            <span class="scan-history-title">
+              <i class="ph ph-clock-clockwise"></i> Recent Scans
+            </span>
+            <button class="scan-history-clear" id="scan-history-clear">
+              <i class="ph ph-trash"></i> Clear
+            </button>
+          </div>
+          <div class="scan-history-list" id="scan-history-list"></div>
+        </div>
+
+
+        <div class="status-pills">
+          <div class="pill pill--green">
+            <span class="pill-dot"></span>
+            AI Engine Active
+          </div>
+          <div class="pill pill--cyan">
+            <span class="pill-dot"></span>
+            Community Intelligence Online
+          </div>
+          <div class="pill pill--blue">
+            <span class="pill-dot"></span>
+            Real-Time Monitoring Enabled
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         DASHBOARD PREVIEW CARD
+    ════════════════════════════════════════════════════ -->
+    <section class="preview-section" id="preview">
+      <div class="preview-label">
+        <i class="ph ph-monitor"></i>
+        Live Platform Preview
+      </div>
+
+      <div class="dashboard-preview glass-card" id="dashboard-preview">
+
+        <!-- Preview Header Bar -->
+        <div class="preview-topbar">
+          <div class="preview-dots">
+            <span class="dot dot--red"></span>
+            <span class="dot dot--yellow"></span>
+            <span class="dot dot--green"></span>
+          </div>
+          <div class="preview-title-bar">
+            <i class="ph ph-cell-signal-full" style="color: var(--accent-cyan);"></i>
+            ScamShield AI — Threat Operations Center
+          </div>
+          <div class="preview-live-badge">
+            <span class="live-pulse"></span>
+            LIVE
+          </div>
+        </div>
+
+        <!-- Preview Body -->
+        <div class="preview-body">
+
+          <!-- LEFT: Stats + Alerts -->
+          <div class="preview-left">
+            <!-- Risk Meter -->
+            <div class="preview-widget glass-widget">
+              <div class="widget-header">
+                <span class="widget-label">Threat Risk Level</span>
+                <span class="risk-badge risk--high">HIGH</span>
+              </div>
+              <div class="risk-meter">
+                <div class="risk-bar">
+                  <div class="risk-fill" id="risk-fill"></div>
+                </div>
+                <div class="risk-labels">
+                  <span>LOW</span>
+                  <span>MEDIUM</span>
+                  <span>HIGH</span>
+                  <span>CRITICAL</span>
+                </div>
+              </div>
+              <div class="risk-score">
+                <span class="risk-num" id="risk-num">74</span>
+                <span class="risk-unit">/ 100</span>
+              </div>
+            </div>
+
+            <!-- Alert Count -->
+            <div class="preview-widget glass-widget">
+              <div class="widget-header">
+                <span class="widget-label">Live Threat Count</span>
+              </div>
+              <div class="threat-count-row">
+                <div class="threat-count-item">
+                  <div class="count-val count--red" id="cnt-phishing">1,247</div>
+                  <div class="count-lbl">Phishing URLs</div>
+                </div>
+                <div class="threat-count-item">
+                  <div class="count-val count--yellow" id="cnt-calls">893</div>
+                  <div class="count-lbl">Scam Calls</div>
+                </div>
+                <div class="threat-count-item">
+                  <div class="count-val count--cyan" id="cnt-msgs">2,104</div>
+                  <div class="count-lbl">Fraud Messages</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CENTER: Recent Alerts -->
+          <div class="preview-center">
+            <div class="preview-widget glass-widget preview-widget--full">
+              <div class="widget-header">
+                <span class="widget-label">Recent Alerts</span>
+                <span class="widget-count" id="alert-count">3 new</span>
+              </div>
+              <ul class="alert-list" id="alert-list">
+                <li class="alert-item alert--red">
+                  <div class="alert-icon"><i class="ph ph-link-break"></i></div>
+                  <div class="alert-body">
+                    <span class="alert-title">Phishing URL Detected</span>
+                    <span class="alert-meta">http://paypa1-secure.ru/login — <em>Severity: Critical</em></span>
+                  </div>
+                  <span class="alert-time">now</span>
+                </li>
+                <li class="alert-item alert--yellow">
+                  <div class="alert-icon"><i class="ph ph-phone-x"></i></div>
+                  <div class="alert-body">
+                    <span class="alert-title">Scam Number Reported</span>
+                    <span class="alert-meta">+1 (800) 555-0198 — <em>14 reports</em></span>
+                  </div>
+                  <span class="alert-time">2m</span>
+                </li>
+                <li class="alert-item alert--orange">
+                  <div class="alert-icon"><i class="ph ph-chat-circle-warning"></i></div>
+                  <div class="alert-body">
+                    <span class="alert-title">Suspicious Message Pattern</span>
+                    <span class="alert-meta">KYC expiry bait detected — <em>AI confidence 97%</em></span>
+                  </div>
+                  <span class="alert-time">5m</span>
+                </li>
+                <li class="alert-item alert--cyan">
+                  <div class="alert-icon"><i class="ph ph-globe-hemisphere-west"></i></div>
+                  <div class="alert-body">
+                    <span class="alert-title">Domain Impersonation</span>
+                    <span class="alert-meta">arnazon-support.net — <em>Flagged</em></span>
+                  </div>
+                  <span class="alert-time">11m</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- RIGHT: Mini Chart -->
+          <div class="preview-right">
+            <div class="preview-widget glass-widget preview-widget--full">
+              <div class="widget-header">
+                <span class="widget-label">Activity — Last 7 Days</span>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="preview-chart" height="120"></canvas>
+              </div>
+              <div class="chart-legend">
+                <span class="legend-dot" style="background: var(--accent-cyan);"></span> Threats
+                <span class="legend-dot" style="background: var(--alert-red); margin-left:12px;"></span> Scams
+              </div>
+            </div>
+
+            <!-- Monitoring Status -->
+            <div class="preview-widget glass-widget">
+              <div class="widget-header">
+                <span class="widget-label">Monitoring Status</span>
+              </div>
+              <div class="monitor-list">
+                <div class="monitor-row">
+                  <span class="monitor-name">URL Scanner</span>
+                  <span class="monitor-status status--online">Online</span>
+                </div>
+                <div class="monitor-row">
+                  <span class="monitor-name">Call Analyzer</span>
+                  <span class="monitor-status status--online">Online</span>
+                </div>
+                <div class="monitor-row">
+                  <span class="monitor-name">NLP Engine</span>
+                  <span class="monitor-status status--online">Online</span>
+                </div>
+                <div class="monitor-row">
+                  <span class="monitor-name">Community Feed</span>
+                  <span class="monitor-status status--online">Online</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         FEATURE CARDS
+    ════════════════════════════════════════════════════ -->
+    <section class="features-section" id="features">
+      <div class="features-inner">
+
+        <div class="feature-card glass-card" id="feat-1">
+          <div class="feat-icon feat-icon--red">
+            <i class="ph ph-phone-slash"></i>
+          </div>
+          <h3 class="feat-title">Scam Call Detection</h3>
+          <p class="feat-desc">Identify and block fraudulent calls in real time using AI voice-pattern analysis and community-sourced number databases.</p>
+          <div class="feat-stats">
+            <div class="feat-stat">
+              <span class="feat-stat-val">3.8K+</span>
+              <span class="feat-stat-lbl">Calls flagged today</span>
+            </div>
+            <div class="feat-stat">
+              <span class="feat-stat-val">99.1%</span>
+              <span class="feat-stat-lbl">Accuracy rate</span>
+            </div>
+          </div>
+          <a href="#" class="feat-link">
+            Learn more <i class="ph ph-arrow-right"></i>
+          </a>
+        </div>
+
+        <div class="feature-card glass-card" id="feat-2">
+          <div class="feat-icon feat-icon--cyan">
+            <i class="ph ph-link-break"></i>
+          </div>
+          <h3 class="feat-title">Phishing URL Analysis</h3>
+          <p class="feat-desc">Deep-scan links for spoofed domains, malicious redirects, and credential-harvesting patterns before they reach users.</p>
+          <div class="feat-stats">
+            <div class="feat-stat">
+              <span class="feat-stat-val">7.2K+</span>
+              <span class="feat-stat-lbl">URLs blocked today</span>
+            </div>
+            <div class="feat-stat">
+              <span class="feat-stat-val">&lt;200ms</span>
+              <span class="feat-stat-lbl">Scan latency</span>
+            </div>
+          </div>
+          <a href="#" class="feat-link">
+            Learn more <i class="ph ph-arrow-right"></i>
+          </a>
+        </div>
+
+        <div class="feature-card glass-card" id="feat-3">
+          <div class="feat-icon feat-icon--purple">
+            <i class="ph ph-users-three"></i>
+          </div>
+          <h3 class="feat-title">Community Threat Intelligence</h3>
+          <p class="feat-desc">Crowdsourced threat reports aggregated and verified by AI to build a continuously updated global scam intelligence network.</p>
+          <div class="feat-stats">
+            <div class="feat-stat">
+              <span class="feat-stat-val">1.3K+</span>
+              <span class="feat-stat-lbl">Reports today</span>
+            </div>
+            <div class="feat-stat">
+              <span class="feat-stat-val">82K</span>
+              <span class="feat-stat-lbl">Active contributors</span>
+            </div>
+          </div>
+          <a href="#" class="feat-link">
+            Learn more <i class="ph ph-arrow-right"></i>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         HOW IT WORKS
+    ════════════════════════════════════════════════════ -->
+    <section class="hiw-section" id="how-it-works">
+      <div class="hiw-inner">
+
+        <!-- Section Header -->
+        <div class="section-header">
+          <div class="section-eyebrow">
+            <i class="ph ph-path"></i>
+            Process
+          </div>
+          <h2 class="section-heading">How ScamShield AI Protects You</h2>
+        </div>
+
+        <!-- Steps Timeline -->
+        <div class="hiw-steps">
+
+          <!-- Step 1 -->
+          <div class="hiw-step glass-card" id="hiw-1">
+            <div class="step-number">01</div>
+            <div class="hiw-icon hiw-icon--blue">
+              <i class="ph ph-chat-dots"></i>
+            </div>
+            <h3 class="step-title">Incoming Communication</h3>
+            <p class="step-desc">SMS, calls, and URLs are detected in real time.</p>
+          </div>
+
+          <!-- Connector -->
+          <div class="hiw-connector" aria-hidden="true">
+            <div class="connector-line"></div>
+            <i class="ph ph-caret-right connector-arrow"></i>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="hiw-step glass-card" id="hiw-2">
+            <div class="step-number">02</div>
+            <div class="hiw-icon hiw-icon--cyan">
+              <i class="ph ph-cpu"></i>
+            </div>
+            <h3 class="step-title">AI Threat Analysis</h3>
+            <p class="step-desc">NLP and machine learning analyze suspicious patterns.</p>
+          </div>
+
+          <!-- Connector -->
+          <div class="hiw-connector" aria-hidden="true">
+            <div class="connector-line"></div>
+            <i class="ph ph-caret-right connector-arrow"></i>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="hiw-step glass-card" id="hiw-3">
+            <div class="step-number">03</div>
+            <div class="hiw-icon hiw-icon--purple">
+              <i class="ph ph-graph"></i>
+            </div>
+            <h3 class="step-title">Community Intelligence</h3>
+            <p class="step-desc">User reports and reputation scoring strengthen detection.</p>
+          </div>
+
+          <!-- Connector -->
+          <div class="hiw-connector" aria-hidden="true">
+            <div class="connector-line"></div>
+            <i class="ph ph-caret-right connector-arrow"></i>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="hiw-step glass-card" id="hiw-4">
+            <div class="step-number">04</div>
+            <div class="hiw-icon hiw-icon--green">
+              <i class="ph ph-seal-check"></i>
+            </div>
+            <h3 class="step-title">Instant Protection</h3>
+            <p class="step-desc">Users receive immediate scam warnings and risk explanations.</p>
+          </div>
+
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="stats-strip glass-card" id="stats-strip">
+          <div class="strip-item">
+            <div class="strip-icon strip-icon--cyan">
+              <i class="ph ph-activity"></i>
+            </div>
+            <div class="strip-text">
+              <span class="strip-label">Real-Time Monitoring</span>
+              <span class="strip-sub">24 / 7 continuous scan</span>
+            </div>
+          </div>
+          <div class="strip-divider"></div>
+          <div class="strip-item">
+            <div class="strip-icon strip-icon--blue">
+              <i class="ph ph-brain"></i>
+            </div>
+            <div class="strip-text">
+              <span class="strip-label">AI-Based Detection</span>
+              <span class="strip-sub">99.1% accuracy rate</span>
+            </div>
+          </div>
+          <div class="strip-divider"></div>
+          <div class="strip-item">
+            <div class="strip-icon strip-icon--purple">
+              <i class="ph ph-users-three"></i>
+            </div>
+            <div class="strip-text">
+              <span class="strip-label">Community Verified Alerts</span>
+              <span class="strip-sub">82K+ active contributors</span>
+            </div>
+          </div>
+          <div class="strip-divider"></div>
+          <div class="strip-item">
+            <div class="strip-icon strip-icon--green">
+              <i class="ph ph-info"></i>
+            </div>
+            <div class="strip-text">
+              <span class="strip-label">Explainable Risk Analysis</span>
+              <span class="strip-sub">Full reasoning on every alert</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         LIVE THREAT INTELLIGENCE
+    ════════════════════════════════════════════════════ -->
+    <section class="lti-section" id="live-threats">
+      <div class="lti-inner">
+
+        <!-- Section Header -->
+        <div class="section-header">
+          <div class="section-eyebrow">
+            <span class="live-pulse-sm"></span>
+            Real-Time Monitoring
+          </div>
+          <h2 class="section-heading">Live Threat Intelligence</h2>
+        </div>
+
+        <!-- 2-Column Grid -->
+        <div class="lti-grid">
+
+          <!-- LEFT: Live Feed -->
+          <div class="lti-feed glass-card">
+            <div class="lti-feed-header">
+              <span class="lti-feed-title">
+                <i class="ph ph-broadcast"></i>
+                Live Threat Feed
+              </span>
+              <span class="lti-feed-badge">
+                <span class="live-pulse-sm"></span>
+                LIVE
+              </span>
+            </div>
+            <ul class="lti-feed-list" id="lti-feed-list">
+              <li class="lti-entry lti-entry--high">
+                <div class="lti-entry-left">
+                  <span class="lti-severity sev--high">HIGH</span>
+                  <div class="lti-entry-body">
+                    <span class="lti-entry-title">Phishing URL Detected</span>
+                    <span class="lti-entry-meta">hdfc-bank-kyc-update.ru — flagged by AI scanner</span>
+                  </div>
+                </div>
+                <span class="lti-entry-time">just now</span>
+              </li>
+              <li class="lti-entry lti-entry--med">
+                <div class="lti-entry-left">
+                  <span class="lti-severity sev--med">WARN</span>
+                  <div class="lti-entry-body">
+                    <span class="lti-entry-title">Scam Number Reported</span>
+                    <span class="lti-entry-meta">+91 98765 43210 — 24 community reports</span>
+                  </div>
+                </div>
+                <span class="lti-entry-time">1m ago</span>
+              </li>
+              <li class="lti-entry lti-entry--high">
+                <div class="lti-entry-left">
+                  <span class="lti-severity sev--high">HIGH</span>
+                  <div class="lti-entry-body">
+                    <span class="lti-entry-title">Suspicious Banking Message</span>
+                    <span class="lti-entry-meta">SBI OTP bait pattern — NLP confidence 98%</span>
+                  </div>
+                </div>
+                <span class="lti-entry-time">3m ago</span>
+              </li>
+              <li class="lti-entry lti-entry--safe">
+                <div class="lti-entry-left">
+                  <span class="lti-severity sev--safe">SAFE</span>
+                  <div class="lti-entry-body">
+                    <span class="lti-entry-title">High-Risk Communication Blocked</span>
+                    <span class="lti-entry-meta">amazon-prize-india.net — neutralised</span>
+                  </div>
+                </div>
+                <span class="lti-entry-time">6m ago</span>
+              </li>
+              <li class="lti-entry lti-entry--med">
+                <div class="lti-entry-left">
+                  <span class="lti-severity sev--med">WARN</span>
+                  <div class="lti-entry-body">
+                    <span class="lti-entry-title">WhatsApp Lottery Scam</span>
+                    <span class="lti-entry-meta">Viral message campaign — 412 reports today</span>
+                  </div>
+                </div>
+                <span class="lti-entry-time">9m ago</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- RIGHT: Intelligence Cards -->
+          <div class="lti-cards">
+
+            <!-- Card 1: Most Targeted Brands -->
+            <div class="lti-card glass-card" id="lti-brands">
+              <div class="lti-card-header">
+                <span class="lti-card-title">
+                  <i class="ph ph-target"></i>
+                  Most Targeted Brands
+                </span>
+                <span class="lti-card-meta">Today</span>
+              </div>
+              <div class="brand-rows">
+                <div class="brand-row">
+                  <span class="brand-name">SBI Bank</span>
+                  <div class="brand-bar-wrap">
+                    <div class="brand-bar brand-bar--red" style="--w:82%"></div>
+                  </div>
+                  <span class="brand-pct">82%</span>
+                </div>
+                <div class="brand-row">
+                  <span class="brand-name">Paytm</span>
+                  <div class="brand-bar-wrap">
+                    <div class="brand-bar brand-bar--yellow" style="--w:65%"></div>
+                  </div>
+                  <span class="brand-pct">65%</span>
+                </div>
+                <div class="brand-row">
+                  <span class="brand-name">Amazon</span>
+                  <div class="brand-bar-wrap">
+                    <div class="brand-bar brand-bar--cyan" style="--w:54%"></div>
+                  </div>
+                  <span class="brand-pct">54%</span>
+                </div>
+                <div class="brand-row">
+                  <span class="brand-name">WhatsApp</span>
+                  <div class="brand-bar-wrap">
+                    <div class="brand-bar brand-bar--blue" style="--w:41%"></div>
+                  </div>
+                  <span class="brand-pct">41%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Detection Rate -->
+            <div class="lti-card glass-card" id="lti-rate">
+              <div class="lti-card-header">
+                <span class="lti-card-title">
+                  <i class="ph ph-chart-pie-slice"></i>
+                  Threat Detection Rate
+                </span>
+                <span class="rate-trend">
+                  <i class="ph ph-trend-up"></i>
+                  +2.4%
+                </span>
+              </div>
+              <div class="rate-body">
+                <div class="rate-donut-wrap">
+                  <svg class="rate-donut" viewBox="0 0 80 80" width="80" height="80">
+                    <circle class="donut-track" cx="40" cy="40" r="30" />
+                    <circle class="donut-fill donut-fill--cyan" cx="40" cy="40" r="30" id="donut-cyan"
+                      stroke-dasharray="0 188.5" />
+                    <circle class="donut-fill donut-fill--red" cx="40" cy="40" r="30" id="donut-red"
+                      stroke-dasharray="0 188.5" />
+                  </svg>
+                  <div class="rate-center-label">
+                    <span class="rate-big" id="rate-pct">99.1%</span>
+                    <span class="rate-small">accuracy</span>
+                  </div>
+                </div>
+                <div class="rate-legend">
+                  <div class="rate-leg-item">
+                    <span class="rate-leg-dot" style="background:var(--accent-cyan)"></span>
+                    <span class="rate-leg-label">Detected</span>
+                    <span class="rate-leg-val">99.1%</span>
+                  </div>
+                  <div class="rate-leg-item">
+                    <span class="rate-leg-dot" style="background:var(--alert-red)"></span>
+                    <span class="rate-leg-label">Missed</span>
+                    <span class="rate-leg-val">0.9%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Community Intelligence -->
+            <div class="lti-card glass-card" id="lti-community">
+              <div class="lti-card-header">
+                <span class="lti-card-title">
+                  <i class="ph ph-users-three"></i>
+                  Community Intelligence
+                </span>
+              </div>
+              <div class="comm-stats">
+                <div class="comm-stat-item">
+                  <span class="comm-stat-val" id="comm-reports">14,832</span>
+                  <span class="comm-stat-lbl">Verified Reports</span>
+                </div>
+                <div class="comm-stat-divider"></div>
+                <div class="comm-stat-item">
+                  <span class="comm-stat-val" id="comm-contributors">82K</span>
+                  <span class="comm-stat-lbl">Active Contributors</span>
+                </div>
+              </div>
+              <div class="comm-campaign">
+                <span class="comm-campaign-label">Latest Verified Campaign</span>
+                <div class="comm-campaign-card">
+                  <i class="ph ph-warning-octagon comm-warn-icon"></i>
+                  <div>
+                    <span class="comm-campaign-name">TRAI Impersonation Wave</span>
+                    <span class="comm-campaign-sub">1,200+ reports · Active since 08 May 2026</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticker Strip -->
+      <div class="ticker-strip" id="ticker-strip">
+        <div class="ticker-label">
+          <i class="ph ph-broadcast"></i>
+          ALERTS
+        </div>
+        <div class="ticker-track-wrap">
+          <div class="ticker-track" id="ticker-track">
+            <span class="ticker-item ticker-item--red"><i class="ph ph-warning-circle"></i> CRITICAL: New phishing campaign targeting SBI customers</span>
+            <span class="ticker-sep">·</span>
+            <span class="ticker-item ticker-item--yellow"><i class="ph ph-phone-x"></i> WARN: +91 98765 43210 flagged as scam — 24 reports</span>
+            <span class="ticker-sep">·</span>
+            <span class="ticker-item ticker-item--cyan"><i class="ph ph-users"></i> COMMUNITY: 412 WhatsApp lottery warnings filed today</span>
+            <span class="ticker-sep">·</span>
+            <span class="ticker-item ticker-item--red"><i class="ph ph-link-break"></i> PHISHING: amazon-prize-india.net — neutralised</span>
+            <span class="ticker-sep">·</span>
+            <span class="ticker-item ticker-item--yellow"><i class="ph ph-chat-circle-warning"></i> WARN: TRAI impersonation wave — 1,200+ reports active</span>
+            <span class="ticker-sep">·</span>
+            <span class="ticker-item ticker-item--cyan"><i class="ph ph-shield-check"></i> UPDATE: AI engine v3.2 deployed — detection accuracy 99.1%</span>
+            <span class="ticker-sep">·</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════
+         COMMUNITY PROTECTION NETWORK
+    ════════════════════════════════════════════════════ -->
+    <section class="cpn-section" id="community">
+      <div class="cpn-inner">
+
+        <!-- Section Header -->
+        <div class="section-header">
+          <div class="section-eyebrow">
+            <i class="ph ph-users-three"></i>
+            Collective Threat Intelligence
+          </div>
+          <h2 class="section-heading">Community Protection Network</h2>
+        </div>
+
+        <!-- 3 Feature Cards -->
+        <div class="cpn-grid">
+
+          <!-- Card 1: Scam Call Reporting -->
+          <div class="cpn-card glass-card" id="cpn-1">
+            <div class="cpn-card-top">
+              <div class="cpn-icon cpn-icon--red">
+                <i class="ph ph-phone-slash"></i>
+              </div>
+              <div class="cpn-card-meta-row">
+                <span class="cpn-tag cpn-tag--red">Calls</span>
+                <span class="cpn-live-count" id="cpn-call-count">3,892 flagged today</span>
+              </div>
+            </div>
+            <h3 class="cpn-title">Scam Call Reporting</h3>
+            <ul class="cpn-features">
+              <li><i class="ph ph-check-circle"></i> Report suspicious numbers instantly</li>
+              <li><i class="ph ph-check-circle"></i> Crowd-sourced reputation scoring</li>
+              <li><i class="ph ph-check-circle"></i> Community verification system</li>
+            </ul>
+            <!-- Mini caller reputation UI -->
+            <div class="cpn-mini-ui">
+              <div class="caller-preview">
+                <div class="caller-avatar">
+                  <i class="ph ph-phone-x"></i>
+                </div>
+                <div class="caller-info">
+                  <span class="caller-number">+91 98765 43210</span>
+                  <span class="caller-label label--scam">Likely Scam</span>
+                </div>
+                <div class="caller-score">
+                  <span class="score-val">24</span>
+                  <span class="score-lbl">reports</span>
+                </div>
+              </div>
+              <div class="caller-bar-wrap">
+                <div class="caller-bar-track">
+                  <div class="caller-bar-fill caller-bar--danger" style="width: 88%"></div>
+                </div>
+                <span class="caller-bar-label">Scam Risk: 88%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Phishing URL Sharing -->
+          <div class="cpn-card glass-card cpn-card--featured" id="cpn-2">
+            <div class="cpn-card-top">
+              <div class="cpn-icon cpn-icon--cyan">
+                <i class="ph ph-link-break"></i>
+              </div>
+              <div class="cpn-card-meta-row">
+                <span class="cpn-tag cpn-tag--cyan">URLs</span>
+                <span class="cpn-live-count" id="cpn-url-count">7,214 blocked today</span>
+              </div>
+            </div>
+            <h3 class="cpn-title">Phishing URL Sharing</h3>
+            <ul class="cpn-features">
+              <li><i class="ph ph-check-circle"></i> Report malicious URLs instantly</li>
+              <li><i class="ph ph-check-circle"></i> Phishing campaign auto-detection</li>
+              <li><i class="ph ph-check-circle"></i> Real-time shared threat intelligence</li>
+            </ul>
+            <!-- Mini URL threat UI -->
+            <div class="cpn-mini-ui">
+              <div class="url-preview">
+                <div class="url-preview-bar">
+                  <span class="url-dot url-dot--red"></span>
+                  <span class="url-dot url-dot--yellow"></span>
+                  <span class="url-dot url-dot--green"></span>
+                  <span class="url-text">hdfc-bank-kyc-update.ru</span>
+                </div>
+                <div class="url-result">
+                  <span class="url-badge url-badge--danger">
+                    <i class="ph ph-warning-octagon"></i> PHISHING
+                  </span>
+                  <span class="url-conf">AI confidence: 99%</span>
+                </div>
+              </div>
+              <div class="url-tags">
+                <span class="u-tag">Credential Harvest</span>
+                <span class="u-tag">Spoofed Domain</span>
+                <span class="u-tag">SSL Abuse</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Message Scam Detection -->
+          <div class="cpn-card glass-card" id="cpn-3">
+            <div class="cpn-card-top">
+              <div class="cpn-icon cpn-icon--purple">
+                <i class="ph ph-chat-circle-warning"></i>
+              </div>
+              <div class="cpn-card-meta-row">
+                <span class="cpn-tag cpn-tag--purple">Messages</span>
+                <span class="cpn-live-count" id="cpn-msg-count">2,104 identified today</span>
+              </div>
+            </div>
+            <h3 class="cpn-title">Message Scam Detection</h3>
+            <ul class="cpn-features">
+              <li><i class="ph ph-check-circle"></i> Report suspicious SMS patterns</li>
+              <li><i class="ph ph-check-circle"></i> AI + community cross-validation</li>
+              <li><i class="ph ph-check-circle"></i> Scam pattern fingerprinting</li>
+            </ul>
+            <!-- Mini message warning UI -->
+            <div class="cpn-mini-ui">
+              <div class="msg-preview">
+                <div class="msg-bubble">
+                  <span class="msg-sender">SBIBNK</span>
+                  <span class="msg-text">Your KYC expires today. Update now to avoid block: bit.ly/sbi-upd</span>
+                </div>
+                <div class="msg-warning">
+                  <i class="ph ph-warning-circle"></i>
+                  <span>Scam pattern detected — Prize/urgency bait</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Stats Strip -->
+        <div class="cpn-stats glass-card" id="cpn-stats">
+          <div class="cpn-stat-item">
+            <span class="cpn-stat-val" id="cpn-s1">0</span>
+            <span class="cpn-stat-lbl">Verified Scam Reports</span>
+          </div>
+          <div class="cpn-stat-div"></div>
+          <div class="cpn-stat-item">
+            <span class="cpn-stat-val" id="cpn-s2">0</span>
+            <span class="cpn-stat-lbl">Active Community Members</span>
+          </div>
+          <div class="cpn-stat-div"></div>
+          <div class="cpn-stat-item">
+            <span class="cpn-stat-val" id="cpn-s3">0</span>
+            <span class="cpn-stat-lbl">Threats Shared Globally</span>
+          </div>
+          <div class="cpn-stat-div"></div>
+          <div class="cpn-stat-item">
+            <span class="cpn-stat-val" id="cpn-s4">0</span>
+            <span class="cpn-stat-lbl">Detection Accuracy</span>
+          </div>
+        </div>
+
+        <!-- Quote Panel -->
+        <div class="cpn-quote">
+          <div class="quote-line"></div>
+          <p class="quote-text">
+            "Powered by AI-driven analysis and community intelligence<br>for faster, smarter scam detection."
+          </p>
+          <div class="quote-line"></div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         AI DETECTION CAPABILITIES
+    ════════════════════════════════════════════════ -->
+    <section class="ai-section" id="ai-capabilities">
+      <div class="ai-inner">
+        <div class="section-header">
+          <div class="section-eyebrow"><i class="ph ph-cpu"></i> Intelligent Threat Analysis</div>
+          <h2 class="section-heading">AI Detection Capabilities</h2>
+        </div>
+        <div class="ai-grid">
+          <!-- Card 1 -->
+          <div class="ai-card glass-card" id="ai-1">
+            <div class="ai-card-head">
+              <div class="ai-icon ai-icon--cyan"><i class="ph ph-brain"></i></div>
+              <span class="ai-card-label">NLP Engine</span>
+            </div>
+            <h3 class="ai-card-title">NLP-Based Message Analysis</h3>
+            <ul class="ai-list">
+              <li><i class="ph ph-caret-right"></i>Scam keyword detection</li>
+              <li><i class="ph ph-caret-right"></i>Urgency language analysis</li>
+              <li><i class="ph ph-caret-right"></i>Impersonation pattern detection</li>
+            </ul>
+            <div class="ai-mini-ui">
+              <div class="nlp-msg">
+                <span class="nlp-sender">VM-HDFC</span>
+                <span class="nlp-body">Your account will be <mark class="nlp-mark nlp-mark--red">blocked</mark> unless you verify <mark class="nlp-mark nlp-mark--yellow">immediately</mark> at <mark class="nlp-mark nlp-mark--red">hdfc-update.ru</mark></span>
+              </div>
+              <div class="nlp-tags">
+                <span class="nlp-tag nlp-tag--red">Urgency bait</span>
+                <span class="nlp-tag nlp-tag--red">Phishing link</span>
+                <span class="nlp-tag nlp-tag--yellow">Impersonation</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 2 -->
+          <div class="ai-card glass-card" id="ai-2">
+            <div class="ai-card-head">
+              <div class="ai-icon ai-icon--red"><i class="ph ph-magnifying-glass"></i></div>
+              <span class="ai-card-label">URL Scanner</span>
+            </div>
+            <h3 class="ai-card-title">Phishing URL Detection</h3>
+            <ul class="ai-list">
+              <li><i class="ph ph-caret-right"></i>Suspicious domain analysis</li>
+              <li><i class="ph ph-caret-right"></i>URL structure inspection</li>
+              <li><i class="ph ph-caret-right"></i>Phishing pattern recognition</li>
+            </ul>
+            <div class="ai-mini-ui">
+              <div class="url-scan-row"><span class="url-scan-label">Domain Age</span><span class="url-scan-val val--red">2 days</span></div>
+              <div class="url-scan-row"><span class="url-scan-label">SSL Issuer</span><span class="url-scan-val val--yellow">Self-signed</span></div>
+              <div class="url-scan-row"><span class="url-scan-label">Redirect Hops</span><span class="url-scan-val val--red">7 hops</span></div>
+              <div class="url-scan-row"><span class="url-scan-label">Threat Score</span><span class="url-scan-val val--red">97 / 100</span></div>
+            </div>
+          </div>
+          <!-- Card 3 -->
+          <div class="ai-card glass-card" id="ai-3">
+            <div class="ai-card-head">
+              <div class="ai-icon ai-icon--yellow"><i class="ph ph-phone-incoming"></i></div>
+              <span class="ai-card-label">Call Analyzer</span>
+            </div>
+            <h3 class="ai-card-title">Call Behavior Analysis</h3>
+            <ul class="ai-list">
+              <li><i class="ph ph-caret-right"></i>Repeated scam call detection</li>
+              <li><i class="ph ph-caret-right"></i>Suspicious country code monitoring</li>
+              <li><i class="ph ph-caret-right"></i>Abnormal calling pattern analysis</li>
+            </ul>
+            <div class="ai-mini-ui">
+              <div class="call-rep-header">
+                <span class="call-rep-num">+91 98765 43210</span>
+                <span class="call-rep-badge">HIGH RISK</span>
+              </div>
+              <div class="call-rep-bars">
+                <div class="call-rep-row"><span>Report frequency</span><div class="call-rep-bar-wrap"><div class="call-rep-bar crb-anim" style="--crb-w:90%;--crb-c:var(--alert-red)"></div></div></div>
+                <div class="call-rep-row"><span>Geographic spread</span><div class="call-rep-bar-wrap"><div class="call-rep-bar crb-anim" style="--crb-w:65%;--crb-c:var(--warn-yellow)"></div></div></div>
+                <div class="call-rep-row"><span>Community reports</span><div class="call-rep-bar-wrap"><div class="call-rep-bar crb-anim" style="--crb-w:80%;--crb-c:var(--alert-red)"></div></div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Card 4 -->
+          <div class="ai-card glass-card" id="ai-4">
+            <div class="ai-card-head">
+              <div class="ai-icon ai-icon--purple"><i class="ph ph-chart-line-up"></i></div>
+              <span class="ai-card-label">Risk Engine</span>
+            </div>
+            <h3 class="ai-card-title">Explainable Risk Scoring</h3>
+            <ul class="ai-list">
+              <li><i class="ph ph-caret-right"></i>AI-generated explanations</li>
+              <li><i class="ph ph-caret-right"></i>Transparent detection reasoning</li>
+              <li><i class="ph ph-caret-right"></i>Risk level indicators</li>
+            </ul>
+            <div class="ai-mini-ui">
+              <div class="risk-exp-row"><span class="risk-exp-label">Phishing keywords</span><div class="risk-exp-bar-wrap"><div class="risk-exp-bar reb-anim" style="--exp-w:85%;--exp-c:var(--alert-red)"></div></div><span class="risk-exp-pct">85%</span></div>
+              <div class="risk-exp-row"><span class="risk-exp-label">URL anomaly</span><div class="risk-exp-bar-wrap"><div class="risk-exp-bar reb-anim" style="--exp-w:92%;--exp-c:var(--alert-red)"></div></div><span class="risk-exp-pct">92%</span></div>
+              <div class="risk-exp-row"><span class="risk-exp-label">Sender spoof</span><div class="risk-exp-bar-wrap"><div class="risk-exp-bar reb-anim" style="--exp-w:70%;--exp-c:var(--warn-yellow)"></div></div><span class="risk-exp-pct">70%</span></div>
+              <div class="risk-exp-total">Overall Risk Score: <strong>97 / 100</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workflow -->
+        <div class="ai-workflow" id="ai-workflow">
+          <div class="wf-node"><div class="wf-dot wf-dot--cyan"></div><span class="wf-label">Incoming<br>Communication</span></div>
+          <div class="wf-connector"><div class="wf-line wf-line--anim"></div><i class="ph ph-caret-right wf-arrow"></i></div>
+          <div class="wf-node"><div class="wf-dot wf-dot--blue"></div><span class="wf-label">AI<br>Processing</span></div>
+          <div class="wf-connector"><div class="wf-line wf-line--anim"></div><i class="ph ph-caret-right wf-arrow"></i></div>
+          <div class="wf-node"><div class="wf-dot wf-dot--purple"></div><span class="wf-label">Community<br>Validation</span></div>
+          <div class="wf-connector"><div class="wf-line wf-line--anim"></div><i class="ph ph-caret-right wf-arrow"></i></div>
+          <div class="wf-node"><div class="wf-dot wf-dot--yellow"></div><span class="wf-label">Risk<br>Assessment</span></div>
+          <div class="wf-connector"><div class="wf-line wf-line--anim"></div><i class="ph ph-caret-right wf-arrow"></i></div>
+          <div class="wf-node"><div class="wf-dot wf-dot--green"></div><span class="wf-label">Instant<br>Alert</span></div>
+        </div>
+
+        <!-- Feature Strip -->
+        <div class="ai-strip glass-card">
+          <div class="ai-strip-item"><i class="ph ph-lightning"></i> Real-Time Analysis</div>
+          <div class="ai-strip-div"></div>
+          <div class="ai-strip-item"><i class="ph ph-info"></i> Explainable AI</div>
+          <div class="ai-strip-div"></div>
+          <div class="ai-strip-item"><i class="ph ph-users-three"></i> Community Intelligence</div>
+          <div class="ai-strip-div"></div>
+          <div class="ai-strip-item"><i class="ph ph-arrows-counter-clockwise"></i> Adaptive Threat Detection</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         WHY SCAMSHIELD AI
+    ════════════════════════════════════════════════ -->
+    <section class="why-section" id="why">
+      <div class="why-inner">
+        <div class="section-header">
+          <div class="section-eyebrow"><i class="ph ph-star"></i> Advanced Digital Protection</div>
+          <h2 class="section-heading">Why ScamShield AI</h2>
+        </div>
+
+        <!-- Comparison Cards -->
+        <div class="why-grid">
+          <!-- Col 1: Traditional -->
+          <div class="why-card why-card--muted glass-card">
+            <div class="why-card-head">
+              <div class="why-icon why-icon--gray"><i class="ph ph-funnel"></i></div>
+              <span class="why-badge why-badge--gray">Traditional</span>
+            </div>
+            <h3 class="why-card-title">Spam Filters</h3>
+            <ul class="why-list why-list--con">
+              <li><i class="ph ph-x-circle"></i> Reactive detection only</li>
+              <li><i class="ph ph-x-circle"></i> Limited explainability</li>
+              <li><i class="ph ph-x-circle"></i> Isolated analysis</li>
+              <li><i class="ph ph-x-circle"></i> Weak community intelligence</li>
+              <li><i class="ph ph-x-circle"></i> No phishing URL analysis</li>
+              <li><i class="ph ph-x-circle"></i> No call monitoring</li>
+            </ul>
+          </div>
+
+          <!-- Col 2: ScamShield AI (highlighted) -->
+          <div class="why-card why-card--hero glass-card" id="why-hero">
+            <div class="why-hero-glow" aria-hidden="true"></div>
+            <div class="why-card-head">
+              <div class="why-icon why-icon--cyan"><i class="ph ph-cell-signal-full"></i></div>
+              <span class="why-badge why-badge--cyan">Recommended</span>
+            </div>
+            <h3 class="why-card-title why-hero-title">ScamShield AI</h3>
+            <ul class="why-list why-list--pro">
+              <li><i class="ph ph-check-circle"></i> Real-time scam detection</li>
+              <li><i class="ph ph-check-circle"></i> AI-powered NLP analysis</li>
+              <li><i class="ph ph-check-circle"></i> Explainable risk scoring</li>
+              <li><i class="ph ph-check-circle"></i> Community-driven intelligence</li>
+              <li><i class="ph ph-check-circle"></i> Phishing URL detection</li>
+              <li><i class="ph ph-check-circle"></i> Scam call monitoring</li>
+            </ul>
+            <a href="#" class="btn btn--primary why-cta-btn">
+              Get Protected Now <i class="ph ph-arrow-right"></i>
+            </a>
+          </div>
+
+          <!-- Col 3: Manual -->
+          <div class="why-card why-card--muted glass-card">
+            <div class="why-card-head">
+              <div class="why-icon why-icon--gray"><i class="ph ph-user"></i></div>
+              <span class="why-badge why-badge--gray">Manual</span>
+            </div>
+            <h3 class="why-card-title">Manual Verification</h3>
+            <ul class="why-list why-list--con">
+              <li><i class="ph ph-x-circle"></i> Slower response time</li>
+              <li><i class="ph ph-x-circle"></i> Prone to human error</li>
+              <li><i class="ph ph-x-circle"></i> Delayed protection</li>
+              <li><i class="ph ph-x-circle"></i> Inconsistent detection</li>
+              <li><i class="ph ph-x-circle"></i> Not scalable</li>
+              <li><i class="ph ph-x-circle"></i> No AI assistance</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CTA Panel -->
+        <div class="cta-panel glass-card" id="cta-panel">
+          <div class="cta-glow" aria-hidden="true"></div>
+          <h2 class="cta-heading">Stay Protected Against Digital Scams</h2>
+          <div class="cta-input-row">
+            <div class="cta-input-wrap">
+              <i class="ph ph-envelope cta-input-icon"></i>
+              <input type="email" id="cta-email" class="cta-input" placeholder="Enter your email address…" autocomplete="email">
+            </div>
+            <button class="btn btn--primary" id="cta-submit">
+              Get Started <i class="ph ph-arrow-right"></i>
+            </button>
+          </div>
+          <button class="btn btn--ghost cta-secondary" id="cta-live">
+            <i class="ph ph-activity"></i> View Live Threats
+          </button>
+          <div class="cta-trust">
+            <span class="trust-item"><span class="trust-dot"></span> Real-Time Monitoring</span>
+            <span class="trust-sep">·</span>
+            <span class="trust-item"><span class="trust-dot"></span> AI Threat Intelligence</span>
+            <span class="trust-sep">·</span>
+            <span class="trust-item"><span class="trust-dot"></span> Community Verified Alerts</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="site-footer" id="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <!-- Brand -->
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="logo-icon"><i class="ph ph-cell-signal-full"></i></div>
+            <span class="logo-text">ScamShield AI</span>
+          </div>
+          <p class="footer-tagline">AI-powered real-time scam detection &amp; community threat intelligence platform.</p>
+          <div class="footer-socials">
+            <a href="#" class="social-btn" aria-label="Twitter"><i class="ph ph-twitter-logo"></i></a>
+            <a href="#" class="social-btn" aria-label="LinkedIn"><i class="ph ph-linkedin-logo"></i></a>
+            <a href="#" class="social-btn" aria-label="GitHub"><i class="ph ph-github-logo"></i></a>
+            <a href="#" class="social-btn" aria-label="Email"><i class="ph ph-envelope"></i></a>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div class="footer-links-group">
+          <h4 class="footer-links-title">Platform</h4>
+          <ul class="footer-links">
+            <li><a href="#">Dashboard</a></li>
+            <li><a href="#">Threat Feed</a></li>
+            <li><a href="#">Analytics</a></li>
+            <li><a href="#">Manual Scan</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-group">
+          <h4 class="footer-links-title">Intelligence</h4>
+          <ul class="footer-links">
+            <li><a href="#">Community Reports</a></li>
+            <li><a href="#">Phishing Database</a></li>
+            <li><a href="#">Scam Numbers</a></li>
+            <li><a href="#">AI Insights</a></li>
+          </ul>
+        </div>
+        <div class="footer-links-group">
+          <h4 class="footer-links-title">Company</h4>
+          <ul class="footer-links">
+            <li><a href="#">About</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span class="footer-copy">&copy; 2026 ScamShield AI. All rights reserved.</span>
+        <div class="footer-status">
+          <span class="footer-status-dot"></span>
+          All systems operational
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

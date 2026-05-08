@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Threat Feed — ScamShield AI</title>
+  <meta name="description" content="Real-time scam activity feed — calls, phishing URLs, and message threats detected by ScamShield AI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="threat-feed.css" />
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-glow bg-glow--left"></div>
+    <div class="bg-glow bg-glow--right"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- ── NAVBAR ─────────────────────────────────────── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><i class="ph ph-cell-signal-full"></i></div>
+        <span class="logo-text">ScamShield AI</span>
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html#live-threats" class="nav-link">Live Threats</a>
+        <a href="threat-feed.html" class="nav-link nav-link--active">Threat Feed</a>
+        <a href="community.html" class="nav-link">Community</a>
+        <a href="analytics.html" class="nav-link">Analytics</a>
+        <a href="index.html#why" class="nav-link">Why Us</a>
+      </div>
+      <div class="nav-right">
+        <a href="index.html#cta-panel" class="btn btn--nav">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ───────────────────────────────────────── -->
+  <main class="tf-main">
+
+    <!-- Page Header -->
+    <div class="tf-page-header">
+      <div class="tf-page-header-left">
+        <div class="section-eyebrow">
+          <span class="live-pulse"></span>
+          Real-Time Scam Activity
+        </div>
+        <h1 class="tf-page-title">Live Threat Feed</h1>
+      </div>
+      <div class="tf-page-header-right">
+        <div class="tf-last-updated">
+          <i class="ph ph-clock"></i>
+          Updated <span id="last-update-time">just now</span>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="refresh-btn">
+          <i class="ph ph-arrows-counter-clockwise"></i> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- ── SUMMARY CARDS ──────────────────────────── -->
+    <div class="tf-summary-grid">
+      <div class="tf-sum-card glass-card">
+        <div class="tf-sum-top">
+          <div class="tf-sum-icon tf-sum-icon--red"><i class="ph ph-warning-octagon"></i></div>
+          <span class="tf-sum-trend trend--up"><i class="ph ph-trend-up"></i> +12%</span>
+        </div>
+        <span class="tf-sum-val" id="sum-high">2,847</span>
+        <span class="tf-sum-lbl">High Risk Threats</span>
+        <div class="tf-sum-bar"><div class="tf-sum-fill tf-sum-fill--red" style="width:84%"></div></div>
+      </div>
+      <div class="tf-sum-card glass-card">
+        <div class="tf-sum-top">
+          <div class="tf-sum-icon tf-sum-icon--yellow"><i class="ph ph-phone-slash"></i></div>
+          <span class="tf-sum-trend trend--up"><i class="ph ph-trend-up"></i> +7%</span>
+        </div>
+        <span class="tf-sum-val" id="sum-calls">1,203</span>
+        <span class="tf-sum-lbl">Suspicious Calls</span>
+        <div class="tf-sum-bar"><div class="tf-sum-fill tf-sum-fill--yellow" style="width:56%"></div></div>
+      </div>
+      <div class="tf-sum-card glass-card">
+        <div class="tf-sum-top">
+          <div class="tf-sum-icon tf-sum-icon--cyan"><i class="ph ph-link-break"></i></div>
+          <span class="tf-sum-trend trend--up"><i class="ph ph-trend-up"></i> +18%</span>
+        </div>
+        <span class="tf-sum-val" id="sum-urls">7,214</span>
+        <span class="tf-sum-lbl">Phishing URLs</span>
+        <div class="tf-sum-bar"><div class="tf-sum-fill tf-sum-fill--cyan" style="width:72%"></div></div>
+      </div>
+      <div class="tf-sum-card glass-card">
+        <div class="tf-sum-top">
+          <div class="tf-sum-icon tf-sum-icon--purple"><i class="ph ph-chat-circle-warning"></i></div>
+          <span class="tf-sum-trend trend--down"><i class="ph ph-trend-down"></i> -3%</span>
+        </div>
+        <span class="tf-sum-val" id="sum-msgs">3,892</span>
+        <span class="tf-sum-lbl">Scam Messages</span>
+        <div class="tf-sum-bar"><div class="tf-sum-fill tf-sum-fill--purple" style="width:61%"></div></div>
+      </div>
+    </div>
+
+    <!-- ── FEED + DETAIL PANEL ───────────────────── -->
+    <div class="tf-body">
+
+      <!-- LEFT: Feed -->
+      <div class="tf-feed-col">
+
+        <!-- Filters -->
+        <div class="tf-filters glass-card">
+          <button class="tf-filter tf-filter--active" data-filter="all">All</button>
+          <button class="tf-filter" data-filter="call"><i class="ph ph-phone"></i> Calls</button>
+          <button class="tf-filter" data-filter="url"><i class="ph ph-link"></i> URLs</button>
+          <button class="tf-filter" data-filter="message"><i class="ph ph-chat-circle"></i> Messages</button>
+          <button class="tf-filter tf-filter--red" data-filter="high"><i class="ph ph-warning"></i> High Risk</button>
+          <button class="tf-filter" data-filter="community"><i class="ph ph-users"></i> Community</button>
+          <div class="tf-filter-spacer"></div>
+          <div class="tf-filter-count">
+            Showing <strong id="feed-count">15</strong> threats
+          </div>
+        </div>
+
+        <!-- Feed Table -->
+        <div class="tf-feed glass-card" id="tf-feed">
+          <div class="tf-feed-head">
+            <span>Type</span>
+            <span>Source</span>
+            <span>Risk</span>
+            <span>Reason</span>
+            <span>Detected</span>
+            <span>Status</span>
+          </div>
+          <div class="tf-feed-body" id="tf-feed-body">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Detail Panel -->
+      <div class="tf-detail-col">
+        <div class="tf-detail glass-card" id="tf-detail">
+          <div class="tf-detail-placeholder" id="tf-detail-placeholder">
+            <i class="ph ph-cursor-click"></i>
+            <span>Select a threat to view details</span>
+          </div>
+          <div class="tf-detail-content" id="tf-detail-content" style="display:none">
+
+            <!-- Header -->
+            <div class="tf-det-header">
+              <div class="tf-det-type-badge" id="det-type-badge"></div>
+              <span class="tf-det-time" id="det-time"></span>
+            </div>
+            <div class="tf-det-source" id="det-source"></div>
+
+            <!-- Risk Score -->
+            <div class="tf-det-risk-block">
+              <div class="tf-det-risk-label">Risk Score</div>
+              <div class="tf-det-risk-meter">
+                <div class="tf-det-risk-fill" id="det-risk-fill"></div>
+              </div>
+              <div class="tf-det-risk-vals">
+                <span id="det-risk-score"></span>
+                <span id="det-risk-level"></span>
+              </div>
+            </div>
+
+            <!-- Explanation -->
+            <div class="tf-det-section">
+              <div class="tf-det-section-label"><i class="ph ph-info"></i> AI Explanation</div>
+              <p class="tf-det-explanation" id="det-explanation"></p>
+            </div>
+
+            <!-- Community -->
+            <div class="tf-det-section">
+              <div class="tf-det-section-label"><i class="ph ph-users-three"></i> Community Reports</div>
+              <div class="tf-det-community">
+                <div class="tf-det-com-stat">
+                  <span class="tf-det-com-val" id="det-reports"></span>
+                  <span class="tf-det-com-lbl">Verified Reports</span>
+                </div>
+                <div class="tf-det-com-stat">
+                  <span class="tf-det-com-val" id="det-confidence"></span>
+                  <span class="tf-det-com-lbl">AI Confidence</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="tf-det-section">
+              <div class="tf-det-section-label"><i class="ph ph-shield-check"></i> Recommended Action</div>
+              <div class="tf-det-actions">
+                <button class="tf-action tf-action--block" id="act-block"><i class="ph ph-prohibit"></i> Block</button>
+                <button class="tf-action tf-action--report" id="act-report"><i class="ph ph-flag"></i> Report</button>
+                <button class="tf-action tf-action--safe" id="act-safe"><i class="ph ph-check-circle"></i> Mark Safe</button>
+                <button class="tf-action tf-action--ignore" id="act-ignore"><i class="ph ph-eye-slash"></i> Ignore</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="threat-feed.js"></script>
+</body>
+</html>

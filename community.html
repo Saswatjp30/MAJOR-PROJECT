@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Reports — ScamShield AI</title>
+  <meta name="description" content="Crowd-sourced scam intelligence. View and contribute verified scam reports — calls, phishing URLs, and messages." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="community.css" />
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-layer" aria-hidden="true">
+    <div class="bg-glow bg-glow--left"></div>
+    <div class="bg-glow bg-glow--right"></div>
+    <div class="bg-grid"></div>
+  </div>
+
+  <!-- ── NAVBAR ─────────────────────────────────────── -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon"><i class="ph ph-cell-signal-full"></i></div>
+        <span class="logo-text">ScamShield AI</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#live-threats" class="nav-link">Live Threats</a>
+        <a href="threat-feed.html"        class="nav-link">Threat Feed</a>
+        <a href="community.html"          class="nav-link nav-link--active">Community</a>
+        <a href="analytics.html"          class="nav-link">Analytics</a>
+        <a href="index.html#why"          class="nav-link">Why Us</a>
+      </div>
+      <div class="nav-right">
+        <a href="index.html#cta-panel" class="btn btn--nav">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ───────────────────────────────────────── -->
+  <main class="cm-main">
+
+    <!-- Page Header -->
+    <div class="cm-page-header">
+      <div>
+        <div class="section-eyebrow"><i class="ph ph-users-three"></i> Collective Threat Intelligence</div>
+        <h1 class="cm-page-title">Community Reports</h1>
+      </div>
+      <div class="cm-header-actions">
+        <div class="cm-online-badge">
+          <span class="live-pulse"></span>
+          <span id="online-count">2,841</span> contributors online
+        </div>
+        <button class="btn btn--primary btn--sm" id="open-report-btn">
+          <i class="ph ph-plus-circle"></i> Submit Report
+        </button>
+      </div>
+    </div>
+
+    <!-- ── STAT CARDS ──────────────────────────────── -->
+    <div class="cm-stats-grid">
+      <div class="cm-stat-card glass-card">
+        <div class="cm-stat-top">
+          <div class="cm-stat-icon cm-stat-icon--cyan"><i class="ph ph-shield-check"></i></div>
+          <span class="cm-stat-trend trend--up"><i class="ph ph-trend-up"></i> +9%</span>
+        </div>
+        <span class="cm-stat-val" id="cs-verified">0</span>
+        <span class="cm-stat-lbl">Verified Scam Reports</span>
+      </div>
+      <div class="cm-stat-card glass-card">
+        <div class="cm-stat-top">
+          <div class="cm-stat-icon cm-stat-icon--blue"><i class="ph ph-users"></i></div>
+          <span class="cm-stat-trend trend--up"><i class="ph ph-trend-up"></i> +14%</span>
+        </div>
+        <span class="cm-stat-val" id="cs-members">0</span>
+        <span class="cm-stat-lbl">Active Community Members</span>
+      </div>
+      <div class="cm-stat-card glass-card">
+        <div class="cm-stat-top">
+          <div class="cm-stat-icon cm-stat-icon--red"><i class="ph ph-phone-slash"></i></div>
+          <span class="cm-stat-trend trend--up"><i class="ph ph-trend-up"></i> +6%</span>
+        </div>
+        <span class="cm-stat-val" id="cs-calls">0</span>
+        <span class="cm-stat-lbl">Scam Calls Reported</span>
+      </div>
+      <div class="cm-stat-card glass-card">
+        <div class="cm-stat-top">
+          <div class="cm-stat-icon cm-stat-icon--yellow"><i class="ph ph-link-break"></i></div>
+          <span class="cm-stat-trend trend--up"><i class="ph ph-trend-up"></i> +21%</span>
+        </div>
+        <span class="cm-stat-val" id="cs-urls">0</span>
+        <span class="cm-stat-lbl">Malicious URLs Shared</span>
+      </div>
+    </div>
+
+    <!-- ── BODY ───────────────────────────────────── -->
+    <div class="cm-body">
+
+      <!-- LEFT: Feed -->
+      <div class="cm-feed-col">
+
+        <!-- Tabs -->
+        <div class="cm-tabs glass-card">
+          <button class="cm-tab cm-tab--active" data-tab="all">All Reports</button>
+          <button class="cm-tab" data-tab="call"><i class="ph ph-phone"></i> Scam Calls</button>
+          <button class="cm-tab" data-tab="url"><i class="ph ph-link"></i> Phishing URLs</button>
+          <button class="cm-tab" data-tab="message"><i class="ph ph-chat-circle"></i> Scam Messages</button>
+          <button class="cm-tab cm-tab--verified" data-tab="verified"><i class="ph ph-seal-check"></i> Verified</button>
+        </div>
+
+        <!-- Reports Feed -->
+        <div class="cm-feed glass-card" id="cm-feed">
+          <div class="cm-feed-head">
+            <span>Type</span>
+            <span>Source / Preview</span>
+            <span>Reports</span>
+            <span>Risk</span>
+            <span>Status</span>
+            <span>Time</span>
+          </div>
+          <div class="cm-feed-body" id="cm-feed-body">
+            <!-- JS populated -->
+          </div>
+        </div>
+
+        <!-- Report Submission Form -->
+        <div class="cm-report-form glass-card" id="cm-report-form">
+          <div class="cm-form-header">
+            <div class="cm-form-title">
+              <i class="ph ph-flag-banner"></i>
+              Submit a Scam Report
+            </div>
+            <span class="cm-form-badge">Anonymous · Instant</span>
+          </div>
+          <div class="cm-form-body">
+            <div class="cm-form-row">
+              <div class="cm-form-group cm-form-group--type">
+                <label class="cm-label">Threat Type</label>
+                <div class="cm-type-btns" id="cm-type-btns">
+                  <button class="cm-type-btn cm-type-btn--active" data-type="call">
+                    <i class="ph ph-phone-slash"></i> Scam Call
+                  </button>
+                  <button class="cm-type-btn" data-type="url">
+                    <i class="ph ph-link-break"></i> Phishing URL
+                  </button>
+                  <button class="cm-type-btn" data-type="message">
+                    <i class="ph ph-chat-circle-warning"></i> Scam Message
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="cm-form-row">
+              <div class="cm-form-group cm-form-group--main">
+                <label class="cm-label" id="cm-src-label">Phone Number</label>
+                <div class="cm-input-wrap">
+                  <i class="ph ph-phone cm-input-icon" id="cm-src-icon"></i>
+                  <input type="text" class="cm-input" id="cm-src-input" placeholder="+91 XXXXX XXXXX" />
+                </div>
+              </div>
+              <div class="cm-form-group">
+                <label class="cm-label">Optional Notes</label>
+                <div class="cm-input-wrap">
+                  <i class="ph ph-note cm-input-icon"></i>
+                  <input type="text" class="cm-input" id="cm-notes-input" placeholder="Describe what happened…" />
+                </div>
+              </div>
+            </div>
+            <div class="cm-form-actions">
+              <button class="btn btn--primary" id="cm-submit-btn">
+                <i class="ph ph-paper-plane-tilt"></i> Submit Report
+              </button>
+              <span class="cm-form-note"><i class="ph ph-lock-simple"></i> Your identity is never shared</span>
+            </div>
+            <div class="cm-submit-success" id="cm-success" style="display:none">
+              <i class="ph ph-check-circle"></i>
+              Report submitted! Our AI is analysing your entry.
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Reputation / Side Panel -->
+      <div class="cm-side-col">
+
+        <!-- Top Reported Number -->
+        <div class="cm-side-card glass-card">
+          <div class="cm-side-label"><i class="ph ph-trophy"></i> Most Reported Number</div>
+          <div class="cm-top-number">
+            <div class="cm-top-num-avatar"><i class="ph ph-phone-x"></i></div>
+            <div class="cm-top-num-info">
+              <span class="cm-top-num-val">+91 98765 43210</span>
+              <span class="cm-top-num-sub">81 community reports · TRAI Impersonation</span>
+            </div>
+          </div>
+          <div class="cm-risk-bar-wrap">
+            <div class="cm-risk-bar-fill" style="width:91%;background:var(--alert-red)"></div>
+          </div>
+          <div class="cm-risk-bar-labels">
+            <span>Scam Risk</span><span style="color:var(--alert-red);font-weight:700">91%</span>
+          </div>
+        </div>
+
+        <!-- Trending URL -->
+        <div class="cm-side-card glass-card">
+          <div class="cm-side-label"><i class="ph ph-trend-up"></i> Trending Phishing URL</div>
+          <div class="cm-trending-url">
+            <div class="cm-url-bar">
+              <span class="cm-url-dot cm-url-dot--red"></span>
+              <span class="cm-url-dot cm-url-dot--yellow"></span>
+              <span class="cm-url-dot cm-url-dot--green"></span>
+              <span class="cm-url-text">sbi-kyc-update.xyz</span>
+            </div>
+            <div class="cm-url-tags">
+              <span class="cm-tag cm-tag--red">Brand Spoof</span>
+              <span class="cm-tag cm-tag--red">OTP Harvest</span>
+              <span class="cm-tag cm-tag--yellow">New Domain</span>
+            </div>
+            <div class="cm-url-stats">
+              <span><i class="ph ph-flag"></i> 47 reports</span>
+              <span><i class="ph ph-clock"></i> Active now</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Verified Campaign -->
+        <div class="cm-side-card glass-card">
+          <div class="cm-side-label"><i class="ph ph-seal-check"></i> Latest Verified Campaign</div>
+          <div class="cm-campaign-card">
+            <div class="cm-campaign-icon"><i class="ph ph-warning-octagon"></i></div>
+            <div class="cm-campaign-info">
+              <span class="cm-campaign-name">TRAI Impersonation Wave</span>
+              <span class="cm-campaign-sub">1,200+ reports · Active since 08 May 2026</span>
+              <span class="cm-campaign-badge">Verified by AI</span>
+            </div>
+          </div>
+          <div class="cm-campaign-card cm-campaign-card--secondary">
+            <div class="cm-campaign-icon cm-campaign-icon--yellow"><i class="ph ph-envelope-simple-open"></i></div>
+            <div class="cm-campaign-info">
+              <span class="cm-campaign-name">Fake Job Offer SMS Blast</span>
+              <span class="cm-campaign-sub">340+ reports · Ongoing</span>
+              <span class="cm-campaign-badge cm-campaign-badge--yellow">Under Review</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Contributors -->
+        <div class="cm-side-card glass-card">
+          <div class="cm-side-label"><i class="ph ph-medal"></i> Top Contributors</div>
+          <div class="cm-contributors">
+            <div class="cm-contrib-row">
+              <div class="cm-contrib-rank rank--gold">1</div>
+              <div class="cm-contrib-avatar" style="background:linear-gradient(135deg,#f59e0b,#d97706)">A</div>
+              <div class="cm-contrib-info">
+                <span class="cm-contrib-name">anon_guard_91</span>
+                <span class="cm-contrib-count">412 verified reports</span>
+              </div>
+              <span class="cm-contrib-badge contrib-badge--gold">Elite</span>
+            </div>
+            <div class="cm-contrib-row">
+              <div class="cm-contrib-rank rank--silver">2</div>
+              <div class="cm-contrib-avatar" style="background:linear-gradient(135deg,#94a3b8,#64748b)">S</div>
+              <div class="cm-contrib-info">
+                <span class="cm-contrib-name">shielduser_mk</span>
+                <span class="cm-contrib-count">287 verified reports</span>
+              </div>
+              <span class="cm-contrib-badge contrib-badge--silver">Pro</span>
+            </div>
+            <div class="cm-contrib-row">
+              <div class="cm-contrib-rank rank--bronze">3</div>
+              <div class="cm-contrib-avatar" style="background:linear-gradient(135deg,#00C8E8,#3A7BD5)">R</div>
+              <div class="cm-contrib-info">
+                <span class="cm-contrib-name">rk_scamwatch</span>
+                <span class="cm-contrib-count">199 verified reports</span>
+              </div>
+              <span class="cm-contrib-badge contrib-badge--bronze">Active</span>
+            </div>
+            <div class="cm-contrib-row">
+              <div class="cm-contrib-rank">4</div>
+              <div class="cm-contrib-avatar" style="background:linear-gradient(135deg,#8B5CF6,#6d28d9)">P</div>
+              <div class="cm-contrib-info">
+                <span class="cm-contrib-name">priya_alerts</span>
+                <span class="cm-contrib-count">143 verified reports</span>
+              </div>
+              <span class="cm-contrib-badge">Member</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="community.js"></script>
+</body>
+</html>

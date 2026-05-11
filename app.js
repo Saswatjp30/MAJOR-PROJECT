@@ -9,9 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const y = window.scrollY;
     navbar.classList.toggle('scrolled', y > 40);
     // Hide navbar on fast downscroll, show on upscroll
-    if (y > lastScroll + 8 && y > 120) {
+    if (y > lastScroll + 12 && y > 150) {
       navbar.style.transform = 'translateY(-100%)';
-    } else if (y < lastScroll - 4) {
+    } else if (y < lastScroll - 6) {
       navbar.style.transform = 'translateY(0)';
     }
     lastScroll = y;
@@ -120,38 +120,167 @@ document.addEventListener('DOMContentLoaded', () => {
   const scanError   = document.getElementById('scan-error');
   const scanResult  = document.getElementById('scan-result');
 
-  /* ── Detection logic ── */
-  const HIGH_RISK_KEYWORDS = [
-    '.xyz','.ru','.pw','.tk','.top','.click',
-    'verify','login','kyc','update','bank','reward',
-    'bit.ly','secure-','otp','claim','free','account',
-    'prize','win','offer','sbi','hdfc','paytm','amazon'
-  ];
+  /* ── Backend API configuration ── */
+  const API_BASE        = 'http://localhost:8000';
+  const API_URL         = API_BASE + '/analyze-url';
+  const REPORT_URL      = API_BASE + '/report-url';
+  const REPUTATION_URL  = API_BASE + '/url-reputation';
 
-  function detectThreat(input) {
-    const val   = input.toLowerCase().trim();
-    const score = HIGH_RISK_KEYWORDS.reduce((acc, kw) => val.includes(kw) ? acc + 1 : acc, 0);
-    const isUrl = val.startsWith('http') || val.includes('.') && !val.includes(' ');
-    const isNum = /(\+91|\+\d{1,3})?\s?\d{10}/.test(val) || val.replace(/\D/g,'').length >= 10;
 
-    if (score >= 2) {
-      const reasons = [];
-      if (val.match(/\.(xyz|ru|pw|tk|top|click)/)) reasons.push({ text:'High-risk TLD detected (.xyz / .ru / .pw)', cls:'reason--high', icon:'ph-warning-octagon' });
-      if (val.includes('verify')||val.includes('kyc')||val.includes('update')) reasons.push({ text:'Phishing keyword found: verify/kyc/update', cls:'reason--high', icon:'ph-warning-circle' });
-      if (val.includes('bank')||val.includes('sbi')||val.includes('hdfc')) reasons.push({ text:'Brand impersonation detected', cls:'reason--high', icon:'ph-building-bank' });
-      if (val.includes('login')||val.includes('otp')) reasons.push({ text:'Credential harvesting pattern', cls:'reason--high', icon:'ph-lock-open' });
-      if (val.includes('reward')||val.includes('prize')||val.includes('claim')) reasons.push({ text:'Reward/prize lure — urgency bait', cls:'reason--high', icon:'ph-gift' });
-      if (val.includes('bit.ly')) reasons.push({ text:'Shortened URL — destination obfuscated', cls:'reason--high', icon:'ph-link-break' });
-      if (reasons.length === 0) reasons.push({ text:'Suspicious URL structure detected', cls:'reason--high', icon:'ph-warning-octagon' });
-      return { level:'HIGH', score: Math.min(88 + score * 2, 98), reasons, type: isNum ? 'Suspicious Phone Number' : 'Phishing / Scam URL', reports: Math.floor(Math.random()*30)+12, isHigh:true };
+
+  // Generate a stable session ID for this browser tab (for duplicate report prevention)
+  const SESSION_ID = (() => {
+    let id = sessionStorage.getItem('ss_session_id');
+    if (!id) {
+      id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      sessionStorage.setItem('ss_session_id', id);
+    }
+    return id;
+  })();
+
+  /**
+   * Submit a community report (phishing or safe) for a URL.
+   */
+  async function reportURL(url, reportType, btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-circle-notch" style="animation:spin 0.7s linear infinite"></i> Submitting…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(REPORT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-ID': SESSION_ID,
+        },
+        body: JSON.stringify({ url, report_type: reportType }),
+      });
+      const data = await res.json();
+      console.log('[ScamShield] Report response:', data);
+
+      btn.innerHTML = '<i class="ph ph-check"></i> Reported!';
+      btn.style.opacity = '0.7';
+
+      // ── Real-time Reputation Refresh ──
+      updateReputationUI(data);
+
+      
+      console.log('[ScamShield] Reputation panel refreshed.');
+
+
+
+      // Legacy support for older UI elements
+      const comm = document.getElementById('sr-community');
+      if (comm && data.total_interactions !== undefined) {
+        const total = data.total_interactions;
+        const verdict = data.community_risk || '';
+        const isHigh = verdict === 'HIGH' || verdict === 'MODERATE';
+        comm.className = isHigh ? 'sr-community sr-community--high' : 'sr-community sr-community--low';
+        comm.innerHTML = isHigh
+          ? `<i class="ph ph-users" style="color:var(--alert-red)"></i>
+             <span>Reported by <strong style="color:var(--text-primary)">${total} community members</strong></span>`
+          : `<i class="ph ph-check-circle" style="color:var(--safe-green)"></i>
+             <span><strong style="color:var(--text-primary)">${total} member${total !== 1 ? 's' : ''} marked this safe.</strong></span>`;
+      }
+    } catch (err) {
+      console.error('[ScamShield] Report failed:', err);
+      btn.innerHTML = orig;
+      btn.disabled  = false;
+    }
+  }
+
+  /**
+   * Update the Reputation Panel UI with new data.
+   */
+  function updateReputationUI(data) {
+    const panel = document.getElementById('community-reputation-panel');
+    if (!panel) return;
+    
+    panel.style.display = 'block';
+    
+    const riskEl = document.getElementById('cp-risk');
+    const scamsEl = document.getElementById('cp-scams');
+    const safeEl = document.getElementById('cp-safe');
+    const totalEl = document.getElementById('cp-total');
+
+    const risk = data.community_risk || 'UNKNOWN';
+    riskEl.textContent = risk;
+    riskEl.className = 'cp-val cp-val--risk ' + (
+      risk === 'HIGH' ? 'risk-text--high' : 
+      risk === 'MODERATE' ? 'risk-text--moderate' : 
+      risk === 'SAFE' ? 'risk-text--safe' : ''
+    );
+
+    scamsEl.textContent = data.scam_reports ?? 0;
+    safeEl.textContent = data.safe_votes ?? 0;
+    totalEl.textContent = data.total_interactions ?? (parseInt(scamsEl.textContent) + parseInt(safeEl.textContent));
+  }
+
+  // Poll for dashboard stats (optional background sync)
+  // setInterval(fetchCommunityFeed, 30000); 
+
+
+
+  /**
+   * Map the Django API JSON response into the format expected by showResult().
+   */
+  function mapApiResponse(data, inputVal) {
+    const level  = (data.risk_level || 'LOW').toUpperCase();
+    const score  = data.risk_score  ?? 0;
+    const isHigh = data.is_phishing === true || level === 'HIGH';
+    const isMed  = level === 'MODERATE';
+
+    const reasonCls  = isHigh ? 'reason--high' : isMed ? 'reason--med' : 'reason--low';
+    const reasonIcon = isHigh ? 'ph-warning-octagon' : isMed ? 'ph-warning-circle' : 'ph-check-circle';
+
+    let reasons;
+    if (Array.isArray(data.reasons) && data.reasons.length > 0) {
+      reasons = data.reasons.map(r => ({ text: r, cls: reasonCls, icon: reasonIcon }));
+    } else {
+      reasons = [
+        { text: 'No known phishing patterns detected', cls: 'reason--low', icon: 'ph-check-circle' },
+        { text: 'Domain structure appears normal',      cls: 'reason--low', icon: 'ph-check-circle' },
+      ];
     }
 
-    const lowReasons = [
-      { text:'No known phishing keywords detected', cls:'reason--low', icon:'ph-check-circle' },
-      { text:'Domain structure appears normal', cls:'reason--low', icon:'ph-check-circle' },
-      { text:'No community scam reports found', cls:'reason--low', icon:'ph-check-circle' },
-    ];
-    return { level:'LOW', score: Math.floor(Math.random()*14)+6, reasons: lowReasons, type: isNum ? 'Phone Number' : isUrl ? 'URL / Domain' : 'Text / Message', reports:0, isHigh:false };
+    const isNum = /(\+91|\+\d{1,3})?\s?\d{10}/.test(inputVal);
+    const isUrl = inputVal.startsWith('http') || (inputVal.includes('.') && !inputVal.includes(' '));
+    const type  = isHigh ? 'Phishing / Scam URL'
+                : isNum  ? 'Phone Number'
+                : isUrl  ? 'URL / Domain'
+                : 'Text / Message';
+
+    // Use real community data from API if available
+    const community = data.community || null;
+    const reports   = community ? community.total_interactions
+                    : (isHigh   ? Math.floor(Math.random() * 30) + 12 : 0);
+
+    return { 
+      level, score, reasons, type, reports, isHigh, community, rawUrl: inputVal,
+      confidence: data.confidence || 0,
+      feature_importance: data.feature_importance || {}
+    };
+  }
+
+  /**
+   * Call the Django REST API and return parsed prediction data.
+   */
+  async function fetchPrediction(url) {
+    console.log('[ScamShield] Sending URL to backend:', url);
+    const response = await fetch(API_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ url }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Server error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('[ScamShield] Prediction received:', data);
+    return data;
   }
 
   /* ── Loading step messages ── */
@@ -173,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ── Build result card ── */
   function showResult(result) {
-    const { level, score, reasons, type, reports, isHigh } = result;
+    const { level, score, reasons, type, reports, isHigh, community, rawUrl } = result;
 
     // Header icon
     const icon = document.getElementById('sr-icon');
@@ -191,18 +320,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const fill  = document.getElementById('sr-meter-fill');
     const glow  = document.getElementById('sr-meter-glow');
     const sc    = document.getElementById('sr-meter-score');
-    const color = isHigh ? '#F43F5E' : '#22C55E';
-    fill.style.background = isHigh
-      ? 'linear-gradient(90deg, #F43F5E, #ff6b88)'
-      : 'linear-gradient(90deg, #22C55E, #4ade80)';
+    const isMed = level === 'MODERATE';
+    const color = isHigh ? '#F43F5E' : isMed ? '#EAB308' : '#22C55E';
+    fill.style.background = isHigh ? 'linear-gradient(90deg,#F43F5E,#ff6b88)'
+                          : isMed  ? 'linear-gradient(90deg,#EAB308,#fde047)'
+                          : 'linear-gradient(90deg,#22C55E,#4ade80)';
     glow.style.background = color;
-    sc.textContent  = `Risk Score: ${score}%`;
-    sc.style.color  = color;
+    sc.textContent = `Risk Score: ${score}%`;
+    sc.style.color = color;
 
     scanResult.style.display = 'block';
     scanResult.className = `scan-result scan-result--${level.toLowerCase()}`;
 
-    // Animate meter after paint
     requestAnimationFrame(() => requestAnimationFrame(() => {
       fill.style.width = score + '%';
       glow.style.width = score + '%';
@@ -219,9 +348,56 @@ document.addEventListener('DOMContentLoaded', () => {
       reasonsEl.appendChild(li);
     });
 
-    // Community
+    // XAI: Confidence Meter
+    const confFill = document.getElementById('sr-confidence-fill');
+    const confText = document.getElementById('sr-confidence-text');
+    const confidence = result.confidence || 0;
+    confText.textContent = `Confidence: ${confidence}%`;
+    requestAnimationFrame(() => {
+      confFill.style.width = confidence + '%';
+    });
+
+    // XAI: Feature Importance
+    const featEl = document.getElementById('sr-features');
+    featEl.innerHTML = '';
+    const featureImportance = result.feature_importance || {};
+    
+    // Helper to format feature names for display
+    const formatFeatName = (name) => {
+      return name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    Object.entries(featureImportance).forEach(([name, imp], i) => {
+      const pct = Math.round(imp * 100);
+      const item = document.createElement('div');
+      item.className = 'sr-feature-item';
+      item.style.animation = `feed-in 0.4s ease both ${i * 0.05}s`;
+      item.innerHTML = `
+        <span class="sr-feature-name">${formatFeatName(name)}</span>
+        <div class="sr-feature-bar-wrap">
+          <div class="sr-feature-bar" style="width: ${pct}%"></div>
+        </div>
+        <span class="sr-feature-val">${pct}%</span>
+      `;
+      featEl.appendChild(item);
+    });
+
+
+    // Community intelligence block (real DB data)
     const comm = document.getElementById('sr-community');
-    if (isHigh) {
+    if (community && community.total_interactions > 0) {
+      const isCommHigh = community.community_risk === 'HIGH' || community.community_risk === 'MODERATE';
+      comm.className = isCommHigh ? 'sr-community sr-community--high' : 'sr-community sr-community--low';
+      comm.innerHTML = isCommHigh
+        ? `<i class="ph ph-users" style="color:var(--alert-red)"></i>
+           <span>Reported by <strong style="color:var(--text-primary)">${community.scam_reports} community members</strong> · Verdict: ${community.community_risk}</span>`
+        : `<i class="ph ph-check-circle" style="color:var(--safe-green)"></i>
+           <span><strong style="color:var(--text-primary)">${community.safe_votes} member${community.safe_votes !== 1 ? 's' : ''}</strong> marked this URL as safe.</span>`;
+      
+      // Also update the dedicated Reputation Panel
+      updateReputationUI(community);
+    } else if (isHigh) {
+
       comm.className = 'sr-community sr-community--high';
       comm.innerHTML = `<i class="ph ph-users" style="color:var(--alert-red)"></i>
         <span>Reported by <strong style="color:var(--text-primary)">${reports} community members</strong> in the last 24 hours</span>`;
@@ -231,36 +407,90 @@ document.addEventListener('DOMContentLoaded', () => {
         <span><strong style="color:var(--text-primary)">No community reports found.</strong> This source appears safe.</span>`;
     }
 
-    // Actions
-    const actEl = document.getElementById('sr-actions');
+    // Action buttons — wired to real report API
+    const actEl  = document.getElementById('sr-actions');
     actEl.innerHTML = '';
-    const actions = isHigh
-      ? [
-          { cls:'sr-action--block',  icon:'ph-prohibit',    label:'Block Source'  },
-          { cls:'sr-action--report', icon:'ph-flag',         label:'Report Threat' },
-          { cls:'sr-action--ignore', icon:'ph-eye-slash',    label:'Ignore'        },
-        ]
-      : [
-          { cls:'sr-action--safe',   icon:'ph-check-circle', label:'Mark as Safe'  },
-          { cls:'sr-action--ignore', icon:'ph-eye-slash',    label:'Dismiss'       },
-        ];
-    actions.forEach(a => {
-      const btn = document.createElement('button');
-      btn.className = `sr-action ${a.cls}`;
-      btn.innerHTML = `<i class="ph ${a.icon}"></i> ${a.label}`;
-      btn.addEventListener('click', () => {
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="ph ph-check"></i> Done';
-        btn.disabled = true;
-        setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 2000);
-      });
-      actEl.appendChild(btn);
-    });
+    const normalizedUrl = rawUrl || scanInput.value.trim();
+
+    const reportBtn = document.createElement('button');
+    reportBtn.className = 'sr-action sr-action--report';
+    reportBtn.innerHTML = '<i class="ph ph-flag"></i> Report as Scam';
+    reportBtn.addEventListener('click', () => reportURL(normalizedUrl, 'phishing', reportBtn));
+
+    const safeBtn = document.createElement('button');
+    safeBtn.className = 'sr-action sr-action--safe';
+    safeBtn.innerHTML = '<i class="ph ph-check-circle"></i> Mark as Safe';
+    safeBtn.addEventListener('click', () => reportURL(normalizedUrl, 'safe', safeBtn));
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.className = 'sr-action sr-action--ignore';
+    dismissBtn.innerHTML = '<i class="ph ph-eye-slash"></i> Dismiss';
+    dismissBtn.addEventListener('click', () => { hideScanStates(); scanInput.value = ''; });
+
+    actEl.appendChild(reportBtn);
+    actEl.appendChild(safeBtn);
+    actEl.appendChild(dismissBtn);
 
     // Button restore
-    analyzeBtn.innerHTML  = `<i class="ph ph-scan"></i> Analyze Threat`;
+    analyzeBtn.innerHTML  = '<i class="ph ph-scan"></i> Analyze Threat';
     analyzeBtn.style.background = '';
     analyzeBtn.disabled   = false;
+  }
+
+  /* ── Recent Scan History Logic ── */
+  const scanHistoryContainer = document.getElementById('scan-history');
+  const scanHistoryList = document.getElementById('scan-history-list');
+  const scanHistoryClear = document.getElementById('scan-history-clear');
+  let scanHistory = [];
+
+  function addToHistory(input, level) {
+    if (scanHistoryContainer && scanHistoryContainer.style.display === 'none') {
+      scanHistoryContainer.style.display = 'block';
+    }
+
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    scanHistory.unshift({ input, level, timestamp });
+    if (scanHistory.length > 5) scanHistory.pop();
+
+    renderHistory();
+  }
+
+  function renderHistory() {
+    if (!scanHistoryList) return;
+    scanHistoryList.innerHTML = '';
+    scanHistory.forEach((item, index) => {
+      const el = document.createElement('div');
+      el.className = 'scan-history-item';
+      el.style.animationDelay = `${index * 0.05}s`;
+      
+      const riskClass = item.level === 'HIGH' ? 'risk-badge--high' : (item.level === 'LOW' ? 'risk-badge--low' : 'risk-badge--med');
+      const icon = item.level === 'HIGH' ? 'ph-warning-octagon' : (item.level === 'LOW' ? 'ph-shield-check' : 'ph-warning-circle');
+      const iconColor = item.level === 'HIGH' ? 'var(--alert-red)' : (item.level === 'LOW' ? 'var(--safe-green)' : 'var(--warn-yellow)');
+      const iconBg = item.level === 'HIGH' ? 'rgba(244, 63, 94, 0.12)' : (item.level === 'LOW' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(234, 179, 8, 0.12)');
+
+      el.innerHTML = `
+        <div class="sh-item-left">
+          <div class="sh-icon" style="color: ${iconColor}; background: ${iconBg};"><i class="ph ${icon}"></i></div>
+          <div class="sh-content">
+            <div class="sh-input" title="${item.input}">${item.input.length > 40 ? item.input.substring(0, 40) + '...' : item.input}</div>
+            <div class="sh-time"><i class="ph ph-clock"></i> ${item.timestamp}</div>
+          </div>
+        </div>
+        <div class="sh-item-right">
+          <span class="sh-badge ${riskClass}">${item.level} RISK</span>
+        </div>
+      `;
+      scanHistoryList.appendChild(el);
+    });
+  }
+
+  if (scanHistoryClear) {
+    scanHistoryClear.addEventListener('click', () => {
+      scanHistory = [];
+      if (scanHistoryContainer) scanHistoryContainer.style.display = 'none';
+      if (scanHistoryList) scanHistoryList.innerHTML = '';
+    });
   }
 
   /* ── Main click handler ── */
@@ -268,19 +498,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Also trigger on Enter key
     scanInput.addEventListener('keydown', e => { if (e.key === 'Enter') analyzeBtn.click(); });
 
-    analyzeBtn.addEventListener('click', () => {
+    analyzeBtn.addEventListener('click', async () => {
       const val = scanInput.value.trim();
       hideScanStates();
 
+      // 1. Empty input validation
       if (!val) {
         scanError.style.display = 'flex';
+        document.querySelector('#scan-error span, #scan-error').textContent = 'Please enter a URL or message to analyze.';
         scanInput.style.borderColor = 'var(--alert-red)';
         scanInput.style.boxShadow   = '0 0 0 3px rgba(244,63,94,0.15)';
         setTimeout(() => { scanInput.style.borderColor=''; scanInput.style.boxShadow=''; }, 1800);
         return;
       }
 
-      // Show loading
+      // 2. Show loading state & disable button
       scanLoading.style.display = 'flex';
       analyzeBtn.innerHTML  = '<i class="ph ph-circle-notch" style="animation:spin 0.7s linear infinite"></i> Analyzing…';
       analyzeBtn.disabled   = true;
@@ -293,12 +525,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }, 480);
 
-      setTimeout(() => {
+      // 3. Call Django API
+      try {
+        const apiData = await fetchPrediction(val);
         clearInterval(stepInterval);
         scanLoading.style.display = 'none';
-        showResult(detectThreat(val));
-        scanResult.scrollIntoView({ behavior:'smooth', block:'nearest' });
-      }, 2600);
+
+        // 4. Map response and render result card
+        const result = mapApiResponse(apiData, val);
+        showResult(result);
+        addToHistory(val, result.level);
+        scanResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        // 5. Error handling: backend offline or invalid response
+        clearInterval(stepInterval);
+        scanLoading.style.display = 'none';
+        console.error('[ScamShield] API error:', err.message);
+
+        // Show a clean error card to the user
+        scanError.style.display = 'flex';
+        const errMsg = err.message.includes('Failed to fetch')
+          ? 'Backend is unreachable. Please ensure the Django server is running on port 8000.'
+          : `Analysis failed: ${err.message}`;
+        const errEl = scanError.querySelector('span') || scanError;
+        errEl.textContent = errMsg;
+
+        // Re-enable button
+        analyzeBtn.innerHTML = '<i class="ph ph-scan"></i> Analyze Threat';
+        analyzeBtn.disabled  = false;
+      }
     });
 
     // Close button
@@ -324,7 +580,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function step(ts) {
       if (!startTime) startTime = ts;
       const progress = Math.min((ts - startTime) / duration, 1);
-      const val = Math.floor(progress * (end - start) + start);
+      const ease = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+      const val = Math.floor(ease * (end - start) + start);
       el.textContent = val.toLocaleString();
       if (progress < 1) requestAnimationFrame(step);
     }
@@ -361,8 +618,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const li = document.createElement('li');
     li.className = `alert-item ${t.cls}`;
     li.style.opacity = '0';
-    li.style.transform = 'translateY(-8px)';
-    li.style.transition = 'all 0.35s ease';
+    li.style.transform = 'translateX(-20px) scale(0.95)';
+    li.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
     li.innerHTML = `
       <div class="alert-icon"><i class="ph ${t.icon}"></i></div>
       <div class="alert-body">
@@ -375,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         li.style.opacity = '1';
-        li.style.transform = 'translateY(0)';
+        li.style.transform = 'translateX(0) scale(1)';
       });
     });
 
@@ -524,8 +781,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const li = document.createElement('li');
     li.className = `lti-entry ${t.cls}`;
     li.style.opacity = '0';
-    li.style.transform = 'translateY(-8px)';
-    li.style.transition = 'all 0.35s ease';
+    li.style.transform = 'translateX(-20px) scale(0.95)';
+    li.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
     li.innerHTML = `
       <div class="lti-entry-left">
         <span class="lti-severity ${t.sev}">${t.sevTxt}</span>
@@ -539,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ltiFeedList.insertBefore(li, ltiFeedList.firstChild);
     requestAnimationFrame(() => requestAnimationFrame(() => {
       li.style.opacity = '1';
-      li.style.transform = 'translateY(0)';
+      li.style.transform = 'translateX(0) scale(1)';
     }));
 
     if (ltiFeedList.children.length > 6) {

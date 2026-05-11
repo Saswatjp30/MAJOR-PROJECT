@@ -1,0 +1,7 @@
+django
+djangorestframework
+django-cors-headers
+scikit-learn
+pandas
+numpy
+joblib

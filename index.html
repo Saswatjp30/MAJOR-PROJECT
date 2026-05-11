@@ -154,10 +154,52 @@
               <ul class="sr-reasons" id="sr-reasons"></ul>
             </div>
 
+            <!-- Confidence Meter -->
+            <div class="sr-section">
+              <div class="sr-section-label"><i class="ph ph-target"></i> Prediction Confidence</div>
+              <div class="sr-confidence-wrap">
+                <div class="sr-confidence-bar">
+                  <div class="sr-confidence-fill" id="sr-confidence-fill"></div>
+                </div>
+                <div class="sr-confidence-text" id="sr-confidence-text">Confidence: 0%</div>
+              </div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="sr-section">
+              <div class="sr-section-label"><i class="ph ph-chart-bar"></i> Key Threat Indicators (XAI)</div>
+              <div class="sr-feature-list" id="sr-features">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
             <!-- Community -->
             <div class="sr-section">
               <div class="sr-section-label"><i class="ph ph-users-three"></i> Community Intelligence</div>
               <div class="sr-community" id="sr-community"></div>
+            </div>
+
+            <!-- Community Reputation Panel -->
+            <div class="sr-section sr-community-panel glass-widget" id="community-reputation-panel" style="display:none">
+              <div class="sr-section-label"><i class="ph ph-gauge"></i> Community Reputation</div>
+              <div class="cp-grid">
+                <div class="cp-item">
+                  <span class="cp-label">Risk Level</span>
+                  <span class="cp-val cp-val--risk" id="cp-risk">UNKNOWN</span>
+                </div>
+                <div class="cp-item">
+                  <span class="cp-label">Scam Reports</span>
+                  <span class="cp-val" id="cp-scams">0</span>
+                </div>
+                <div class="cp-item">
+                  <span class="cp-label">Safe Votes</span>
+                  <span class="cp-val" id="cp-safe">0</span>
+                </div>
+                <div class="cp-item">
+                  <span class="cp-label">Total Interactions</span>
+                  <span class="cp-val" id="cp-total">0</span>
+                </div>
+              </div>
             </div>
 
             <!-- Actions -->
@@ -168,7 +210,8 @@
           </div>
         </div>
 
-        <!-- Recent Scans History (hidden until first scan) -->
+        <!-- Recent Scans History -->
+
         <div class="scan-history" id="scan-history" style="display:none">
           <div class="scan-history-header">
             <span class="scan-history-title">
